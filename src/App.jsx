@@ -1490,7 +1490,7 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
       });
     }
   };
-  const parentOverrideTask = async (
+const parentOverrideTask = async (
     chore,
     kidId,
     dateString,
@@ -1507,6 +1507,7 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
     let docRef = existingLog
       ? getFamilyDoc("task_log", existingLog.id)
       : getFamilyDoc("task_log");
+      
     const baseData = {
       type: "chore",
       taskId: chore.id,
@@ -1515,10 +1516,15 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
       dateString,
       timestamp: new Date().toISOString(),
     };
+
     if (action === "approve") {
+      // 1. Calculate Value Safely
       const stats = calculateWeeklyStats(kidId);
       const weight = chore.weight || 1;
-      const value = weight * stats.valuePerPoint;
+      // Ensure valuePerPoint is a valid number, default to 0 if NaN
+      const valuePerPoint = Number(stats.valuePerPoint) || 0; 
+      const value = weight * valuePerPoint;
+
       await setDoc(
         docRef,
         {
@@ -1528,23 +1534,27 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
         },
         { merge: true }
       );
+
+      // 2. Only pay if it wasn't ALREADY approved (prevents double pay)
       if (!existingLog || existingLog.status !== "approved") {
         await updateBalance(
           kidId,
-          value,
+          value, // <--- Passing the safely calculated value
           "chore",
           `${chore.title} (${formatDayDisplay(dateString)})`,
           parentName
         );
       }
     } else if (action === "fail") {
-      await setDoc(
+        // ... (rest of fail logic remains same)
+       await setDoc(
         docRef,
         { ...baseData, status: "failed", rejectedAt: new Date().toISOString() },
         { merge: true }
       );
     } else if (action === "retry") {
-      await setDoc(
+        // ... (rest of retry logic remains same)
+        await setDoc(
         docRef,
         {
           ...baseData,
@@ -2213,18 +2223,26 @@ function ParentView({
     setTransactionAmount("");
     setTransactionDesc("");
   };
-  const approveAll = async () => {
+const approveAll = async () => {
     if (confirm(`Approve all ${pendingCount} tasks?`)) {
       for (const task of pendingTasks) {
+        let val = 0;
+
         if (task.type === "chore") {
           const stats = calculateWeeklyStats(task.kidId);
+          // Find the original chore definition to get the weight
           const choreDef = data.chores.find((c) => c.id === task.taskId);
-          const weight = choreDef?.weight || 1;
-          const val = weight * stats.valuePerPoint;
-          await approveTask(task, val, user.name);
-        } else {
-          await approveTask(task, 0, user.name);
+          // Default to weight 1 if chore was deleted but log remains
+          const weight = choreDef?.weight || 1; 
+          const valuePerPoint = Number(stats.valuePerPoint) || 0;
+          val = weight * valuePerPoint;
+        } else if (task.type === "bonus") {
+            // Bonuses have the reward stored directly on the task log
+            val = Number(task.reward) || 0;
         }
+
+        // Only run if we have a positive value (optional safety check)
+        await approveTask(task, val, user.name);
       }
     }
   };
@@ -2869,31 +2887,36 @@ return (
               <h4 className="text-xs font-bold text-gray-400 mb-2">
                 RECENT HISTORY
               </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {data.history
-                  .filter((h) => h.kidId === selectedKid?.id)
-                  .slice(0, 5)
-                  .map((h) => (
-                    <div key={h.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600 truncate max-w-[180px]">
-                        {h.description}
-                      </span>
-                      <div className="text-right">
-                        <span
-                          className={`font-bold block ${
-                            h.amount > 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {h.amount > 0 ? "+" : ""}
-                          {formatCurrency(h.amount)}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {h.by}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+<div className="space-y-2 max-h-40 overflow-y-auto">
+  {data.history
+    .filter((h) => h.kidId === selectedKid?.id)
+    .slice(0, 5)
+    .map((h) => {
+        // SAFE GUARD: Ensure amount is a number for display
+        const displayAmount = Number(h.amount) || 0; 
+        
+        return (
+            <div key={h.id} className="flex justify-between text-sm">
+              <span className="text-gray-600 truncate max-w-[180px]">
+                {h.description}
+              </span>
+              <div className="text-right">
+                <span
+                  className={`font-bold block ${
+                    displayAmount > 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {displayAmount > 0 ? "+" : ""}
+                  {formatCurrency(displayAmount)}
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {h.by}
+                </span>
               </div>
+            </div>
+        );
+    })}
+</div>
             </div>
           </div>
         </Modal>
