@@ -942,7 +942,8 @@ export default function App() {
   const [showPinPad, setShowPinPad] = useState(false);
   const [pinTarget, setPinTarget] = useState(null);
   const [isPinSetup, setIsPinSetup] = useState(false);
-
+const [showSettingsModal, setShowSettingsModal] = useState(false);
+const [settingsUser, setSettingsUser] = useState(null);
   const [showInitModal, setShowInitModal] = useState(false);
   const [wizardMode, setWizardMode] = useState("create");
   const [showPasswordRecovery, setShowPasswordRecovery] = useState(false);
@@ -1413,24 +1414,20 @@ useEffect(() => {
   };
 
 const onPinPadSuccess = (pin) => {
-    if (pinTarget.isGateUnlock) {
-      // 1. Find the parent who owns this PIN
-      const matchingParent = users.find((u) => u.role === "parent" && u.pin === pin);
-      
-      if (matchingParent) {
-        // 2. SUCCESS: Just log them in!
-        setShowPinPad(false);
-        setPinTarget(null);
-        setCurrentUser(matchingParent);
-        setView("parent"); 
-      } else {
-        alert("Incorrect Parent PIN");
-      }
+  if (pinTarget.isGateUnlock) {
+    const matchingParent = users.find((u) => u.role === "parent" && u.pin === pin);
+    if (matchingParent) {
+      setShowPinPad(false);
+      setPinTarget(null);
+      setSettingsUser(matchingParent); // Remember who unlocked it
+      setShowSettingsModal(true);      // Open the Global Settings
     } else {
-      // Normal login flow (for kids or regular parent login)
-      handlePinSuccess(pin);
+      alert("Incorrect Parent PIN");
     }
-  };
+  } else {
+    handlePinSuccess(pin);
+  }
+};
 
   // CRUD
   const logTransaction = async (
@@ -1813,6 +1810,77 @@ const onPinPadSuccess = (pin) => {
         </Modal>
       )}
       <InstallPrompt />
+      {/* --- GLOBAL FAMILY SETTINGS MODAL --- */}
+      <Modal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} title="Family Settings">
+        <div className="space-y-6">
+          
+          {/* 1. DEVICE MODE SETTINGS */}
+          <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+            <h4 className="font-bold text-indigo-800 text-sm uppercase">This Device Mode</h4>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => updateDeviceConfig({ mode: "FAMILY", targetId: null })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "FAMILY" ? "border-indigo-600 bg-white ring-2 ring-indigo-100" : "border-gray-100 hover:border-indigo-200 bg-white"}`}>
+                <div className={`p-2 rounded-full ${deviceConfig?.mode === "FAMILY" ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-500"}`}><Monitor size={20} /></div>
+                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Family (Default)</span><span className="text-[10px] text-gray-500">Standard login screen.</span></div>
+                {deviceConfig?.mode === "FAMILY" && <CheckCircle size={18} className="text-indigo-600" />}
+              </button>
+
+              <button onClick={() => updateDeviceConfig({ mode: "PARENT_SOLO", targetId: settingsUser?.id })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "PARENT_SOLO" ? "border-blue-600 bg-white ring-2 ring-blue-100" : "border-gray-100 hover:border-blue-200 bg-white"}`}>
+                <div className={`p-2 rounded-full ${deviceConfig?.mode === "PARENT_SOLO" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><ShieldCheck size={20} /></div>
+                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Only Me</span><span className="text-[10px] text-gray-500">Auto-login as {settingsUser?.name || 'Parent'}.</span></div>
+                {deviceConfig?.mode === "PARENT_SOLO" && <CheckCircle size={18} className="text-blue-600" />}
+              </button>
+
+              <div className="mt-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kid Solo Mode</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {kids.map((k) => (
+                    <button key={k.id} onClick={() => updateDeviceConfig({ mode: "KID_SOLO", targetId: k.id })} className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${deviceConfig?.mode === "KID_SOLO" && deviceConfig?.targetId === k.id ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-600 border-gray-200 hover:border-green-300"}`}>
+                      <span className="text-xl">{k.avatar}</span><span className="font-bold truncate">{k.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. FAMILY ACCESS (INVITES) */}
+          <div className="space-y-4 pt-4 border-t border-gray-100">
+             <h4 className="font-bold text-gray-700 text-sm uppercase">Family Access</h4>
+             <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-sm text-gray-600 space-y-3">
+                <div className="flex justify-between items-center gap-2">
+                   <div className="flex items-center gap-2"><LinkIcon size={16} className="text-yellow-600"/><span className="text-xs font-semibold text-yellow-800">Invite Link</span></div>
+                   <button onClick={safeCopyLink} className="px-3 py-1 bg-white border border-yellow-200 rounded text-xs font-bold text-yellow-700 hover:bg-yellow-100" disabled={invitesEnabled === false}><Copy size={14}/></button>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-yellow-200">
+                   <span className="text-xs font-bold text-yellow-800">Allow Invites</span>
+                   <button onClick={toggleInvites} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${invitesEnabled ? 'bg-green-500' : 'bg-gray-300'}`}><span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${invitesEnabled ? 'translate-x-6' : 'translate-x-1'}`}/></button>
+                </div>
+             </div>
+             {/* List other parents */}
+             <div className="space-y-2">
+                {users.filter(u => u.role === 'parent' && u.id !== settingsUser?.id).map(p => (
+                  <div key={p.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                    <span className="font-bold text-gray-700">{p.name}</span>
+                    <button onClick={() => deleteParent(p.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          {/* 3. FULL LOGOUT */}
+          <div className="pt-4 border-t border-gray-100">
+            <button onClick={() => { handleFullSignOut(); setShowSettingsModal(false); }} className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100">
+              <LogOut size={18}/> Full Sign Out
+            </button>
+            <p className="text-[10px] text-center text-red-300 mt-2">Disconnects device from family account.</p>
+          </div>
+
+          {/* SAVE BUTTON */}
+          <div className="pt-2">
+             <Button onClick={() => setShowSettingsModal(false)} className="w-full">Save & Close</Button>
+          </div>
+        </div>
+      </Modal>
 {/* NEW DEVICE ADMIN MENU (Triggered by Parent PIN) */}
   
       {view === "login" && (
@@ -1965,6 +2033,10 @@ const onPinPadSuccess = (pin) => {
           invitesEnabled={invitesEnabled}
           toggleInvites={toggleInvites}
           familyNames={familyNames}
+          onOpenSettings={() => { 
+       setSettingsUser(currentUser); 
+       setShowSettingsModal(true); 
+    }}
         />
       )}
       {view === "kid" && (
@@ -2017,6 +2089,7 @@ function ParentView({
   invitesEnabled,
   toggleInvites,
   familyNames,
+  onOpenSettings,
 }) {
   // SAFETY CHECK: If user is missing, don't render to prevent crash
   if (!user) return null;
@@ -2030,7 +2103,6 @@ function ParentView({
   const [editingKidProfile, setEditingKidProfile] = useState(null);
   const [managingTasksKid, setManagingTasksKid] = useState(null);
   const [rejectingTask, setRejectingTask] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [editingChore, setEditingChore] = useState(null);
   const [splitRewardTask, setSplitRewardTask] = useState(null);
   const [splitAmount, setSplitAmount] = useState(0);
@@ -2206,10 +2278,10 @@ function ParentView({
           </div>
 <div className="flex gap-2">
             <button
-              onClick={() => setShowSettings(true)}
-              className="text-gray-500 hover:text-blue-600"
-            >
-              <Settings size={20} />
+onClick={onOpenSettings} // <--- CHANGE THIS
+  className="text-gray-500 hover:text-blue-600"
+>
+  <Settings size={20} />
             </button>
           </div>
         </div>
@@ -2237,318 +2309,7 @@ function ParentView({
         </div>
 
         {/* SETTINGS MODAL */}
-        <Modal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          title="Family Settings"
-        >
-          <div className="space-y-6">
-            <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-            <h4 className="font-bold text-indigo-800 text-sm uppercase">This Device Mode</h4>
-            <div className="flex flex-col gap-2">
-              <button onClick={() => updateDeviceConfig({ mode: "FAMILY", targetId: null })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "FAMILY" ? "border-indigo-600 bg-white ring-2 ring-indigo-100" : "border-gray-100 hover:border-indigo-200 bg-white"}`}>
-                <div className={`p-2 rounded-full ${deviceConfig?.mode === "FAMILY" ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-500"}`}><Monitor size={20} /></div>
-                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Family (Default)</span><span className="text-[10px] text-gray-500">Standard login screen.</span></div>
-                {deviceConfig?.mode === "FAMILY" && <CheckCircle size={18} className="text-indigo-600" />}
-              </button>
 
-              <button onClick={() => updateDeviceConfig({ mode: "PARENT_SOLO", targetId: user.id })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "PARENT_SOLO" ? "border-blue-600 bg-white ring-2 ring-blue-100" : "border-gray-100 hover:border-blue-200 bg-white"}`}>
-                <div className={`p-2 rounded-full ${deviceConfig?.mode === "PARENT_SOLO" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><ShieldCheck size={20} /></div>
-                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Only Me</span><span className="text-[10px] text-gray-500">Auto-login as {user.name}.</span></div>
-                {deviceConfig?.mode === "PARENT_SOLO" && <CheckCircle size={18} className="text-blue-600" />}
-              </button>
-
-              <div className="mt-2">
-                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kid Solo Mode</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {data.kids.map((k) => (
-                    <button key={k.id} onClick={() => updateDeviceConfig({ mode: "KID_SOLO", targetId: k.id })} className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${deviceConfig?.mode === "KID_SOLO" && deviceConfig?.targetId === k.id ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-600 border-gray-200 hover:border-green-300"}`}>
-                      <span className="text-xl">{k.avatar}</span><span className="font-bold truncate">{k.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-            {/* Device Settings */}
-            <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-              <h4 className="font-bold text-indigo-800 text-sm uppercase">
-                This Device Mode
-              </h4>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() =>
-                    updateDeviceConfig({ mode: "FAMILY", targetId: null })
-                  }
-                  className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 group ${
-                    deviceConfig?.mode === "FAMILY"
-                      ? "border-indigo-600 bg-white ring-2 ring-indigo-100"
-                      : "border-gray-100 hover:border-indigo-200 bg-white"
-                  }`}
-                >
-                  <div
-                    className={`p-2 rounded-full ${
-                      deviceConfig?.mode === "FAMILY"
-                        ? "bg-indigo-100 text-indigo-600"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    <Monitor size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <span className="font-bold block text-sm text-gray-800">
-                      Family (Default)
-                    </span>
-                    <span className="text-[10px] text-gray-500">
-                      Standard login screen.
-                    </span>
-                  </div>
-                  {deviceConfig?.mode === "FAMILY" && (
-                    <CheckCircle size={18} className="text-indigo-600" />
-                  )}
-                </button>
-                <button
-                  onClick={() =>
-                    updateDeviceConfig({ mode: "PARENT_SOLO", targetId: user.id })
-                  }
-                  className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 group ${
-                    deviceConfig?.mode === "PARENT_SOLO"
-                      ? "border-blue-600 bg-white ring-2 ring-blue-100"
-                      : "border-gray-100 hover:border-blue-200 bg-white"
-                  }`}
-                >
-                  <div
-                    className={`p-2 rounded-full ${
-                      deviceConfig?.mode === "PARENT_SOLO"
-                        ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    <ShieldCheck size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <span className="font-bold block text-sm text-gray-800">
-                      Only Me
-                    </span>
-                    <span className="text-[10px] text-gray-500">
-                      Auto-login as {user.name}.
-                    </span>
-                  </div>
-                  {deviceConfig?.mode === "PARENT_SOLO" && (
-                    <CheckCircle size={18} className="text-blue-600" />
-                  )}
-                </button>
-                <button
-                  onClick={() =>
-                    updateDeviceConfig({ mode: "KIDS_SHARED", targetId: null })
-                  }
-                  className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 group ${
-                    deviceConfig?.mode === "KIDS_SHARED"
-                      ? "border-purple-600 bg-white ring-2 ring-purple-100"
-                      : "border-gray-100 hover:border-purple-200 bg-white"
-                  }`}
-                >
-                  <div
-                    className={`p-2 rounded-full ${
-                      deviceConfig?.mode === "KIDS_SHARED"
-                        ? "bg-purple-100 text-purple-600"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    <Users size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <span className="font-bold block text-sm text-gray-800">
-                      Just the Kids
-                    </span>
-                    <span className="text-[10px] text-gray-500">
-                      Hides parent logins.
-                    </span>
-                  </div>
-                  {deviceConfig?.mode === "KIDS_SHARED" && (
-                    <CheckCircle size={18} className="text-purple-600" />
-                  )}
-                </button>
-                <div className="mt-2">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">
-                    Auto-Login (Specific Kid)
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {data.kids.map((k) => (
-                      <button
-                        key={k.id}
-                        onClick={() =>
-                          updateDeviceConfig({
-                            mode: "KID_SOLO",
-                            targetId: k.id,
-                          })
-                        }
-                        className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${
-                          deviceConfig?.mode === "KID_SOLO" &&
-                          deviceConfig?.targetId === k.id
-                            ? "bg-green-600 text-white border-green-600"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-green-300"
-                        }`}
-                      >
-                        <span className="text-xl">{k.avatar}</span>
-                        <span className="font-bold truncate">{k.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Family Switcher */}
-            {knownFamilyIds && knownFamilyIds.length > 1 && (
-              <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <h4 className="font-bold text-blue-800 text-sm uppercase flex items-center gap-2">
-                  <RefreshCw size={14} /> Switch Family
-                </h4>
-                <div className="flex gap-2 flex-wrap">
-                  {knownFamilyIds.map((id) => (
-                    <button
-                      key={id}
-                      onClick={() => setCurrentFamilyId(id)}
-                      className={`flex-1 py-2 px-3 text-xs font-bold rounded border ${
-                        currentFamilyId === id
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-blue-600 border-blue-200"
-                      }`}
-                    >
-                      {familyNames && familyNames[id]
-                        ? familyNames[id]
-                        : id === user.uid
-                        ? "My Family"
-                        : "Shared"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <h4 className="font-bold text-gray-700 text-sm uppercase">
-                My Profile
-              </h4>
-              <div className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-700">
-                    {user.name} (Me)
-                  </span>
-                  <button
-                    onClick={() => {
-                      const newName = prompt(
-                        "Enter new display name:",
-                        user.name
-                      );
-                      if (newName) updateParentName(user.id, newName);
-                    }}
-                    className="text-gray-400 hover:text-blue-500"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  maxLength="4"
-                  placeholder="New PIN"
-                  className="border p-2 rounded flex-1"
-                  value={newParentPin}
-                  onChange={(e) => setNewParentPin(e.target.value)}
-                />
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (newParentPin.length === 4)
-                      updateParentPin(user.id, newParentPin);
-                    setNewParentPin("");
-                    alert("PIN updated");
-                  }}
-                >
-                  Update PIN
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <h4 className="font-bold text-gray-700 text-sm uppercase">
-                Family Access
-              </h4>
-              <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-sm text-gray-600 space-y-3">
-                <div className="flex justify-between items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <LinkIcon size={16} className="text-yellow-600" />
-                    <span className="text-xs font-semibold text-yellow-800">
-                      Invite Link
-                    </span>
-                  </div>
-                  <button
-                    onClick={executeCopy}
-                    className="px-3 py-1 bg-white border border-yellow-200 rounded text-xs font-bold text-yellow-700 hover:bg-yellow-100"
-                    disabled={invitesEnabled === false}
-                  >
-                    <Copy size={14} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-yellow-200">
-                  <span className="text-xs font-bold text-yellow-800">
-                    Allow Invites
-                  </span>
-                  <button
-                    onClick={toggleInvites}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      invitesEnabled ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        invitesEnabled ? "translate-x-6" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {data.users
-                  .filter((u) => u.role === "parent" && u.id !== user.id)
-                  .map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex justify-between items-center bg-gray-50 p-2 rounded"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-700">
-                          {p.name}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => deleteParent(p.id)}
-                        className="text-red-400 hover:text-red-600"
-                        title="Remove Access"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                {data.users.filter(
-                  (u) => u.role === "parent" && u.id !== user.id
-                ).length === 0 && (
-                  <p className="text-xs text-gray-400 italic">
-                    No other guardians.
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <button onClick={logout} className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100">
-                <LogOut size={18}/> Log Out
-              </button>
-            </div>
-          </div>
-        </Modal>
 
         {/* Reuse all other sections (Approvals, Kids, Chores, Bonuses, History, Modals) */}
         <Modal
