@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (Pink Gradient) -->
+  <rect width="512" height="512" rx="120" fill="#FFB6C1"/>
+  
+  <!-- Ears -->
+  <path d="M120 140 L160 80 L220 140 Z" fill="#FF69B4"/>
+  <path d="M392 140 L352 80 L292 140 Z" fill="#FF69B4"/>
+  
+  <!-- Face -->
+  <circle cx="256" cy="270" r="160" fill="#FFC0CB"/>
+  
+  <!-- Eyes -->
+  <circle cx="200" cy="230" r="15" fill="#333"/>
+  <circle cx="312" cy="230" r="15" fill="#333"/>
+  
+  <!-- Snout -->
+  <ellipse cx="256" cy="290" rx="50" ry="35" fill="#FF69B4"/>
+  <circle cx="240" cy="290" r="8" fill="#D24886"/>
+  <circle cx="272" cy="290" r="8" fill="#D24886"/>
+  
+  <!-- Coin Slot (It's a bank!) -->
+  <rect x="226" y="160" width="60" height="10" rx="5" fill="#C71585"/>
+  
+  <!-- Cheeks -->
+  <circle cx="160" cy="280" r="20" fill="#FF69B4" fill-opacity="0.4"/>
+  <circle cx="352" cy="280" r="20" fill="#FF69B4" fill-opacity="0.4"/>
+</svg>
