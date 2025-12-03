@@ -2400,29 +2400,20 @@ function ParentView({
     }
   };
 const handleBonusApproval = (task) => {
-    // 1. Handle Group Tasks (Bonuses that need splitting)
-    if (task.isGroupTask) {
-      setSplitAmount(Math.floor(task.reward / 2));
-      setSplitRewardTask(task);
-      return;
-    }
-
-    // 2. Calculate Value based on Type
+    // Simplified: Always pay the full reward attached to the log
     let payout = 0;
 
     if (task.type === "chore") {
-      // It's a Chore: Calculate dynamic value (Weight * ValuePerPoint)
       const stats = calculateWeeklyStats(task.kidId);
       const choreDef = data.chores.find((c) => c.id === task.taskId);
       const weight = choreDef?.weight || 1;
       const valuePerPoint = Number(stats.valuePerPoint) || 0;
       payout = weight * valuePerPoint;
     } else {
-      // It's a Bonus: Use the fixed reward attached to the task
+      // Bonus: Use the fixed reward stored on the log
       payout = Number(task.reward) || 0;
     }
 
-    // 3. Pay the user
     approveTask(task, payout, user.name);
   };
   const handleAddKid = (e) => {
@@ -2577,55 +2568,7 @@ const handleBonusApproval = (task) => {
         {/* SETTINGS MODAL */}
 
         {/* Reuse all other sections (Approvals, Kids, Chores, Bonuses, History, Modals) */}
-        <Modal
-          isOpen={!!splitRewardTask}
-          onClose={() => setSplitRewardTask(null)}
-          title="Split Group Reward"
-        >
-          <div className="space-y-4">
-            <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-              <h4 className="font-bold text-gray-800">
-                {splitRewardTask?.title}
-              </h4>
-              <p className="text-sm text-gray-600">
-                Total Pool: {formatCurrency(splitRewardTask?.reward)}
-              </p>
-            </div>
-            <p className="text-sm text-gray-500">
-              Multiple kids might be working on this. How much should{" "}
-              <strong>
-                {data.kids.find((k) => k.id === splitRewardTask?.kidId)?.name}
-              </strong>{" "}
-              get?
-            </p>
-            <div className="flex items-center gap-3 justify-center py-4">
-              <button
-                onClick={() => setSplitAmount((s) => Math.max(0, s - 1))}
-                className="p-3 bg-gray-100 rounded-full"
-              >
-                <Minus size={20} />
-              </button>
-              <span className="text-4xl font-bold text-green-600">
-                {formatCurrency(splitAmount)}
-              </span>
-              <button
-                onClick={() => setSplitAmount((s) => s + 1)}
-                className="p-3 bg-gray-100 rounded-full"
-              >
-                <Plus size={20} />
-              </button>
-            </div>
-            <Button
-              className="w-full bg-green-600"
-              onClick={() => {
-                approveTask(splitRewardTask, splitAmount, user.name);
-                setSplitRewardTask(null);
-              }}
-            >
-              Approve {formatCurrency(splitAmount)}
-            </Button>
-          </div>
-        </Modal>
+
         {activeTab === "history" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -3740,10 +3683,7 @@ const handleBonusApproval = (task) => {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
-                      <Star
-                        size={20}
-                        className="fill-yellow-500 text-yellow-500"
-                      />
+                      <Star size={20} className="fill-yellow-500 text-yellow-500" />
                     </div>
                     <div>
                       <span className="font-bold text-gray-800 block">
@@ -3766,7 +3706,7 @@ const handleBonusApproval = (task) => {
                     </button>
                   </div>
                 </div>
-              ))}
+            ))}
             </div>
           </div>
         )}
