@@ -1842,7 +1842,53 @@ const onPinPadSuccess = (pin) => {
               </div>
             </div>
           </div>
+{/* --- PASTE THIS "MY PROFILE" SECTION --- */}
+          <div className="space-y-4 pt-4 border-t border-gray-100">
+            <h4 className="font-bold text-gray-700 text-sm uppercase">My Profile</h4>
+            
+            {/* Name Display / Edit */}
+            <div className="flex justify-between items-center bg-gray-50 p-2 rounded">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-700">{settingsUser?.name} (Me)</span>
+                <button 
+                  onClick={() => { 
+                    const newName = prompt("Enter new display name:", settingsUser?.name); 
+                    if (newName) updateParentName(settingsUser.id, newName); 
+                  }} 
+                  className="text-gray-400 hover:text-blue-500"
+                >
+                  <Edit2 size={14}/>
+                </button>
+              </div>
+            </div>
 
+            {/* PIN Update */}
+            <div className="flex gap-2 items-center">
+              <input 
+                type="text" 
+                maxLength="4" 
+                placeholder="New PIN" 
+                className="border p-2 rounded flex-1" 
+                value={newParentPin} 
+                onChange={e => setNewParentPin(e.target.value)} 
+              />
+              <Button 
+                size="sm" 
+                onClick={() => { 
+                  if(newParentPin.length === 4 && settingsUser) {
+                    updateParentPin(settingsUser.id, newParentPin); 
+                    setNewParentPin(''); 
+                    alert('PIN updated successfully'); 
+                  } else {
+                    alert('PIN must be 4 digits');
+                  }
+                }}
+              >
+                Update PIN
+              </Button>
+            </div>
+          </div>
+          {/* --------------------------------------- */}
           {/* 2. FAMILY ACCESS (INVITES) */}
           <div className="space-y-4 pt-4 border-t border-gray-100">
              <h4 className="font-bold text-gray-700 text-sm uppercase">Family Access</h4>
@@ -2124,6 +2170,7 @@ function ParentView({
   const [newParentPin, setNewParentPin] = useState("");
   const [newParentName, setNewParentName] = useState("");
   const [newParentPin2, setNewParentPin2] = useState("");
+  const [newParentPin, setNewParentPin] = useState("");
 
   // Ensure kids data is available before running effect
   useEffect(() => {
