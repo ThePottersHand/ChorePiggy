@@ -3622,7 +3622,19 @@ const handleBonusApproval = (task) => {
             </Card>
             <div className="space-y-2">
               <h3 className="font-bold text-gray-700">Active Schedules</h3>
-              {data.chores.map((chore) => {
+              {data.chores
+              .sort((a, b) => {
+                const kidA = data.kids.find((k) => k.id === a.kidId)?.name || "z";
+                const kidB = data.kids.find((k) => k.id === b.kidId)?.name || "z";
+                
+                // 1. Sort by Kid Name
+                if (kidA < kidB) return -1;
+                if (kidA > kidB) return 1;
+
+                // 2. If same kid, sort by Chore Title
+                return a.title.localeCompare(b.title);
+              })
+              .map((chore) => {
                 const assignedKid = data.kids.find((k) => k.id === chore.kidId);
                 const isPaused =
                   chore.pausedUntil && chore.pausedUntil > getLocalISODate();
