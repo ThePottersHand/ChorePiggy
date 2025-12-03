@@ -2169,6 +2169,7 @@ function ParentView({
   const [editingChore, setEditingChore] = useState(null);
   const [splitRewardTask, setSplitRewardTask] = useState(null);
   const [splitAmount, setSplitAmount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transactionAmount, setTransactionAmount] = useState("");
   const [transactionDesc, setTransactionDesc] = useState("");
   const [transactionType, setTransactionType] = useState("add");
@@ -2224,25 +2225,27 @@ function ParentView({
     setTransactionDesc("");
   };
 const approveAll = async () => {
+    if (isProcessing) return; // Prevent double clicks
     if (confirm(`Approve all ${pendingCount} tasks?`)) {
-      for (const task of pendingTasks) {
-        let val = 0;
-
-        if (task.type === "chore") {
-          const stats = calculateWeeklyStats(task.kidId);
-          // Find the original chore definition to get the weight
-          const choreDef = data.chores.find((c) => c.id === task.taskId);
-          // Default to weight 1 if chore was deleted but log remains
-          const weight = choreDef?.weight || 1; 
-          const valuePerPoint = Number(stats.valuePerPoint) || 0;
-          val = weight * valuePerPoint;
-        } else if (task.type === "bonus") {
-            // Bonuses have the reward stored directly on the task log
-            val = Number(task.reward) || 0;
+      setIsProcessing(true); // Lock
+      try {
+        for (const task of pendingTasks) {
+          let val = 0;
+          if (task.type === "chore") {
+             // ... (existing calculation logic) ...
+             // ... make sure you use the FIXED logic from our previous step here ...
+             const stats = calculateWeeklyStats(task.kidId);
+             const choreDef = data.chores.find((c) => c.id === task.taskId);
+             const weight = choreDef?.weight || 1;
+             const valuePerPoint = Number(stats.valuePerPoint) || 0;
+             val = weight * valuePerPoint;
+          } else if (task.type === "bonus") {
+             val = Number(task.reward) || 0;
+          }
+          await approveTask(task, val, user.name);
         }
-
-        // Only run if we have a positive value (optional safety check)
-        await approveTask(task, val, user.name);
+      } finally {
+        setIsProcessing(false); // Unlock
       }
     }
   };
