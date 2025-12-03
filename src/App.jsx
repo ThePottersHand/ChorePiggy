@@ -592,8 +592,20 @@ const SetupWizard = ({
     </Modal>
   );
 };
-const DeviceSetupWizard = ({ kids, users = [], onComplete }) => {
-  const [step, setStep] = useState("select-mode");
+const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, isStandalone }) => {
+  // If not installed, start at 'install-step', otherwise go straight to 'select-mode'
+  const [step, setStep] = useState(!isStandalone ? "install-step" : "select-mode");
+
+  const handleInstallClick = () => {
+    if (installEvent) {
+      installEvent.prompt();
+      installEvent.userChoice.then((choiceResult) => {
+        // Whether they accepted or dismissed, move to next step
+        setStep("select-mode");
+      });
+    }
+  };
+
   const handleModeSelect = (mode) => {
     if (mode === "KID_SOLO") {
       setStep("select-kid");
@@ -607,61 +619,124 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete }) => {
   return (
     <Modal isOpen={true} onClose={null} title="Setup This Device">
       <div className="space-y-4">
-        <p className="text-gray-600 text-sm text-center">
-          Who will be using this specific device?
-        </p>
+        
+        {/* STEP 1: INSTALLATION (Skipped if already installed) */}
+        {step === "install-step" && (
+          <div className="text-center space-y-6 animate-in fade-in">
+            <div className="bg-indigo-50 p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto text-indigo-600 mb-4">
+              <Download size={40} />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-gray-800">Install App?</h3>
+              <p className="text-sm text-gray-500 mt-2">
+                For the best experience, add ChorePiggy to your home screen. It will look and feel like a native app!
+              </p>
+            </div>
 
-        {step === "select-mode" && (
-          <div className="grid gap-3">
-            <button
-              onClick={() => handleModeSelect("FAMILY")}
-              className="p-4 border-2 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 text-left flex items-center gap-3 transition-colors group"
+            {isIOS ? (
+              <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 text-left space-y-2 border border-gray-200">
+                <div className="flex items-center gap-2">
+                  <span>1. Tap</span>
+                  <span className="inline-flex items-center gap-1 font-bold text-blue-600">
+                    <Share size={14} /> Share
+                  </span>
+                  <span>in your browser bar.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>2. Scroll down & tap</span>
+                  <span className="inline-flex items-center gap-1 font-bold text-gray-800">
+                    <Plus size={14} className="border border-gray-400 rounded-[4px] p-[1px]"/> Add to Home Screen
+                  </span>
+                </div>
+                <div className="mt-2 text-center text-xs text-gray-400">
+                  (After adding, close this tab and open the app from your home screen!)
+                </div>
+              </div>
+            ) : (
+               installEvent && (
+                <Button 
+                  onClick={handleInstallClick} 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
+                >
+                  Install Now
+                </Button>
+               )
+            )}
+
+            <Button 
+              variant="ghost" 
+              onClick={() => setStep("select-mode")} 
+              className="w-full text-gray-400 font-normal"
             >
-              <div className="bg-indigo-100 p-3 rounded-full text-indigo-600 group-hover:bg-indigo-200">
-                <Users size={24} />
-              </div>
-              <div>
-                <span className="font-bold block text-gray-800">
-                  Whole Family
-                </span>
-                <span className="text-xs text-gray-500">
-                  Parents & Kids. Requires PINs to switch.
-                </span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleModeSelect("PARENT_SOLO")}
-              className="p-4 border-2 rounded-xl hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3 transition-colors group"
-            >
-              <div className="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:bg-blue-200">
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <span className="font-bold block text-gray-800">Only Me</span>
-                <span className="text-xs text-gray-500">
-                  Parent personal device. Auto-logins to dashboard.
-                </span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleModeSelect("KID_SOLO")}
-              className="p-4 border-2 rounded-xl hover:bg-green-50 hover:border-green-200 text-left flex items-center gap-3 transition-colors group"
-            >
-              <div className="bg-green-100 p-3 rounded-full text-green-600 group-hover:bg-green-200">
-                <User size={24} />
-              </div>
-              <div>
-                <span className="font-bold block text-gray-800">
-                  Specific Kid
-                </span>
-                <span className="text-xs text-gray-500">
-                  Kid personal device. Auto-logins.
-                </span>
-              </div>
-            </button>
+              Skip / Already Installed
+            </Button>
           </div>
         )}
 
+        {/* STEP 2: SELECT MODE */}
+        {step === "select-mode" && (
+          <div className="animate-in slide-in-from-right-4">
+            <p className="text-gray-600 text-sm text-center mb-4">
+              Who will be using this specific device?
+            </p>
+            <div className="grid gap-3">
+              <button
+                onClick={() => handleModeSelect("FAMILY")}
+                className="p-4 border-2 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 text-left flex items-center gap-3 transition-colors group"
+              >
+                <div className="bg-indigo-100 p-3 rounded-full text-indigo-600 group-hover:bg-indigo-200">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <span className="font-bold block text-gray-800">
+                    Whole Family
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Parents & Kids. Requires PINs to switch.
+                  </span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleModeSelect("PARENT_SOLO")}
+                className="p-4 border-2 rounded-xl hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3 transition-colors group"
+              >
+                <div className="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:bg-blue-200">
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <span className="font-bold block text-gray-800">Only Me</span>
+                  <span className="text-xs text-gray-500">
+                    Parent personal device. Auto-logins to dashboard.
+                  </span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleModeSelect("KID_SOLO")}
+                className="p-4 border-2 rounded-xl hover:bg-green-50 hover:border-green-200 text-left flex items-center gap-3 transition-colors group"
+              >
+                <div className="bg-green-100 p-3 rounded-full text-green-600 group-hover:bg-green-200">
+                  <User size={24} />
+                </div>
+                <div>
+                  <span className="font-bold block text-gray-800">
+                    Specific Kid
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Kid personal device. Auto-logins.
+                  </span>
+                </div>
+              </button>
+            </div>
+            {/* Back button to install step if they skipped it by accident */}
+            {!isStandalone && (
+              <Button variant="ghost" onClick={() => setStep("install-step")} className="w-full mt-2 text-xs">
+                 Back to Install
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* STEP 3: SELECT PERSON */}
         {(step === "select-kid" || step === "select-parent") && (
           <div className="space-y-2 animate-in fade-in slide-in-from-right-4">
             <p className="text-xs font-bold text-gray-500 uppercase mb-2">
@@ -983,7 +1058,34 @@ export default function App() {
   const [knownFamilyIds, setKnownFamilyIds] = useState([]);
   const [pendingInviteId, setPendingInviteId] = useState(null);
   const [inviteInfo, setInviteInfo] = useState(null);
+  // ... existing state variables ...
   const [familyNames, setFamilyNames] = useState({});
+
+  // --- NEW: INSTALLATION STATE ---
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Check if already installed
+    const isStandaloneMode =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone;
+    setIsStandalone(isStandaloneMode);
+
+    // Check if iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+
+    // Listen for Android/Desktop install event
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setInstallPromptEvent(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+  }, []);
 
   const [deviceConfig, setDeviceConfig] = useState(() => {
     try {
@@ -1832,11 +1934,14 @@ const addBonus = async (title, reward) => {
           inviteFamilyName={inviteInfo?.name}
         />
       )}
-      {authUser && !deviceConfig && users.length > 0 && (
+ {authUser && !deviceConfig && users.length > 0 && (
         <DeviceSetupWizard
           kids={kids}
           users={users}
           onComplete={updateDeviceConfig}
+          installEvent={installPromptEvent} // Pass the event
+          isIOS={isIOS}                     // Pass iOS status
+          isStandalone={isStandalone}       // Pass standalone status
         />
       )}
       {showPasswordRecovery && (
