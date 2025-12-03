@@ -3075,9 +3075,14 @@ return (
               <h2 className="text-lg font-bold text-gray-700">
                 Waiting for Approval
               </h2>
-              {pendingCount > 0 && (
-                <Button size="sm" variant="success" onClick={approveAll}>
-                  Approve All ({pendingCount})
+{pendingCount > 0 && (
+                <Button 
+                  size="sm" 
+                  variant="success" 
+                  onClick={approveAll}
+                  disabled={isProcessing} // <--- Disable visual
+                >
+                  {isProcessing ? "Processing..." : `Approve All (${pendingCount})`}
                 </Button>
               )}
             </div>
