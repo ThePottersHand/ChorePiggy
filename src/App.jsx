@@ -2400,7 +2400,7 @@ function ParentView({
     }
   };
 const handleBonusApproval = (task) => {
-    // Simplified: Always pay the full reward attached to the log
+    // 1. Calculate Payout
     let payout = 0;
 
     if (task.type === "chore") {
@@ -2410,10 +2410,11 @@ const handleBonusApproval = (task) => {
       const valuePerPoint = Number(stats.valuePerPoint) || 0;
       payout = weight * valuePerPoint;
     } else {
-      // Bonus: Use the fixed reward stored on the log
+      // Bonus: Pay the full amount stored on the task
       payout = Number(task.reward) || 0;
     }
 
+    // 2. Approve
     approveTask(task, payout, user.name);
   };
   const handleAddKid = (e) => {
@@ -3679,30 +3680,30 @@ const handleBonusApproval = (task) => {
 {data.bonuses.map((bonus) => (
                 <div
                   key={bonus.id}
-                  className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex justify-between items-center"
+                  className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
-                      <Star size={20} className="fill-yellow-500 text-yellow-500" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
+                      <Star size={16} className="fill-yellow-500" />
                     </div>
                     <div>
-                      <span className="font-bold text-gray-800 block">
+                      <span className="font-semibold text-gray-700">
                         {bonus.title}
                       </span>
-                      <span className="text-xs text-yellow-700 font-bold uppercase tracking-wide">
-                        First Come, First Served
+                      <span className="text-[10px] text-gray-400 block">
+                        First come, first served
                       </span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="font-bold text-lg text-green-600 bg-white px-3 py-1 rounded-lg shadow-sm">
-                      +{formatCurrency(bonus.reward)}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                      {formatCurrency(bonus.reward)}
+                    </span>
                     <button
-                      onClick={() => submitBonus(bonus, user.id)}
-                      className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95"
+                      onClick={() => deleteBonus(bonus.id)}
+                      className="p-2 text-gray-300 hover:text-red-500 transition-colors"
                     >
-                      I Did It!
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
@@ -4320,95 +4321,37 @@ function KidView({
                   </div>
                 </div>
               ))}
-            {data.bonuses.map((bonus) => {
-              const workers = bonus.workers || [];
-              const isWorking = workers.includes(user.id);
-              const isFull = workers.length >= (bonus.maxKids || 1);
-              const hasSubmitted = data.taskLog.some(
-                (t) => t.taskId === bonus.id && t.kidId === user.id
-              );
-              if (hasSubmitted) return null;
-              return (
+{data.bonuses.map((bonus) => (
                 <div
                   key={bonus.id}
-                  className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex flex-col gap-3 text-left"
+                  className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex justify-between items-center"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isWorking
-                            ? "bg-green-100 text-green-600"
-                            : "bg-yellow-100 text-yellow-600"
-                        }`}
-                      >
-                        {isWorking ? (
-                          <CheckCircle size={20} />
-                        ) : (
-                          <Star
-                            className="fill-yellow-500 text-yellow-500"
-                            size={20}
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-800 block">
-                          {bonus.title}
-                        </span>
-                        <span className="text-xs text-yellow-700 font-semibold uppercase tracking-wide flex items-center gap-1">
-                          {bonus.maxKids > 1 ? <Users size={12} /> : null}
-                          {isWorking ? "In Progress" : "Bonus Task"}
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
+                      <Star size={20} className="fill-yellow-500 text-yellow-500" />
                     </div>
+                    <div>
+                      <span className="font-bold text-gray-800 block">
+                        {bonus.title}
+                      </span>
+                      <span className="text-xs text-yellow-700 font-bold uppercase tracking-wide">
+                        First Come, First Served
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
                     <div className="font-bold text-lg text-green-600 bg-white px-3 py-1 rounded-lg shadow-sm">
                       +{formatCurrency(bonus.reward)}
                     </div>
-                  </div>
-                  {bonus.maxKids > 1 && (
-                    <div className="text-xs text-gray-500 px-1 flex gap-2 items-center">
-                      <div className="flex -space-x-2">
-                        {workers.map((wId) => {
-                          const worker = data.kids.find((k) => k.id === wId);
-                          return (
-                            <div
-                              key={wId}
-                              className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[10px]"
-                              title={worker?.name}
-                            >
-                              {worker?.avatar}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <span>
-                        {workers.length}/{bonus.maxKids} Kids working
-                      </span>
-                    </div>
-                  )}
-                  {isWorking ? (
                     <button
                       onClick={() => submitBonus(bonus, user.id)}
-                      className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-md transition-all active:scale-95"
+                      className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95"
                     >
-                      Mark Done
+                      I Did It!
                     </button>
-                  ) : (
-                    <button
-                      disabled={isFull}
-                      onClick={() => joinBonus(bonus.id, user.id)}
-                      className={`w-full py-2 rounded-xl font-bold border-2 transition-all active:scale-95 ${
-                        isFull
-                          ? "bg-gray-100 text-gray-400 border-transparent"
-                          : "bg-white border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                      }`}
-                    >
-                      {isFull ? "Team Full" : "Start Working"}
-                    </button>
-                  )}
+                  </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </main>
@@ -4421,8 +4364,8 @@ const UserGuideModal = ({ onClose }) => (
     <div className="space-y-6 text-sm text-gray-700 leading-relaxed pb-4">
       <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-900">
         <strong>ChorePiggy</strong> is a smart family allowance tracker that
-        teaches financial literacy. Unlike simple chore charts, it calculates
-        the value of chores dynamically based on a weekly allowance cap.
+        teaches financial literacy. Unlike simple chore charts, it calculates the
+        value of chores dynamically based on a weekly allowance cap.
       </div>
 
       <section>
@@ -4431,17 +4374,12 @@ const UserGuideModal = ({ onClose }) => (
         </h3>
         <ul className="list-disc pl-5 space-y-1">
           <li>
-            <strong>Create a Family Account:</strong> One parent creates the
-            main account using an email and password.
+            <strong>Create Family Account:</strong> One parent creates the main
+            account using an email and password.
           </li>
           <li>
-            <strong>Setup Wizard:</strong> You will be prompted to enter your
-            Family Name and create the first Parent Profile (with a 4-digit
-            PIN).
-          </li>
-          <li>
-            <strong>Add Kids:</strong> Create profiles for your children. You’ll
-            set their Name, PIN, and Weekly Allowance Cap (e.g., $10/week).
+            <strong>Setup Profiles:</strong> Create a profile for yourself (Admin)
+            and each of your children. Set a PIN for everyone.
           </li>
         </ul>
       </section>
@@ -4450,16 +4388,23 @@ const UserGuideModal = ({ onClose }) => (
         <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
           📱 Connect Other Devices
         </h3>
-        <ul className="list-disc pl-5 space-y-1">
+        <ul className="list-disc pl-5 space-y-2">
           <li>
-            <strong>Invite Link:</strong> In the Parent Dashboard, go to{" "}
-            <strong>Settings</strong> to copy the Family Invite Link. Send this
-            to the other parent or kids' devices.
+            <strong>For Kids' Devices:</strong> Open the app on their device and{" "}
+            <strong>Log In</strong> using the main Family Email & Password. Do
+            not create a new account. Once logged in, go to Settings to lock it
+            to their profile.
           </li>
           <li>
-            <strong>App Install:</strong> On mobile devices, tap "Share" (iOS)
-            or the Menu (Android) and select{" "}
-            <strong>"Add to Home Screen"</strong> for a full-screen app.
+            <strong>For Partners/Guardians:</strong> In the Parent Dashboard, go
+            to <strong>Settings</strong> and copy the <strong>Invite Link</strong>
+            . Send this to them so they can create their own login joined to
+            this family.
+          </li>
+          <li>
+            <strong>App Install:</strong> Tap "Share" (iOS) or Menu (Android)
+            and select <strong>"Add to Home Screen"</strong> for a full-screen
+            experience.
           </li>
         </ul>
       </section>
@@ -4469,20 +4414,20 @@ const UserGuideModal = ({ onClose }) => (
           ⚙️ Device Modes
         </h3>
         <p className="mb-2 text-xs text-gray-500">
-          Configure these in Settings (Requires Parent PIN):
+          Go to <strong>Settings &gt; Device</strong> (Requires Parent PIN):
         </p>
         <ul className="list-disc pl-5 space-y-1">
           <li>
             <strong>🖥️ Family Mode (Default):</strong> Best for a shared kitchen
-            tablet. Shows list of all members. Login via PIN.
+            tablet. Shows everyone. Requires PIN to switch users.
           </li>
           <li>
-            <strong>🛡️ Parent Solo:</strong> Best for parent's personal phone.
-            Auto-logs into Parent Dashboard.
+            <strong>🛡️ Parent Solo:</strong> Best for your personal phone.
+            Auto-logs directly into the Parent Dashboard.
           </li>
           <li>
-            <strong>🙂 Kid Solo:</strong> Best for child's personal device.
-            Auto-logs into that child's dashboard.
+            <strong>🙂 Kid Solo:</strong> Best for a child's personal device.
+            Auto-logs directly into that child's view.
           </li>
         </ul>
       </section>
@@ -4498,26 +4443,17 @@ const UserGuideModal = ({ onClose }) => (
             </strong>
             <p>
               We use a <strong>Weight System</strong>. You set a Weekly Cap
-              (e.g., $20) and assign chores weights (1x, 2x, 3x difficulty). The
-              app calculates the value automatically. If a kid does 100% of
-              tasks, they get 100% of the cap. If they skip tasks, they earn
-              less. You never overpay!
-            </p>
-          </div>
-          <div>
-            <strong className="block text-gray-900">Managing Chores</strong>
-            <p>
-              Go to the <strong>Chores</strong> tab. You can create Recurring
-              chores (e.g., Trash on Tuesdays) or One-Off tasks for specific
-              dates.
+              (e.g., $20) and assign chores weights (1x, 2x, 3x difficulty). If
+              a kid does 100% of tasks, they get 100% of the cap. If they skip
+              tasks, they earn less. You never overpay!
             </p>
           </div>
           <div>
             <strong className="block text-gray-900">Bonuses 🌟</strong>
             <p>
               Extra tasks that earn money <strong>on top</strong> of the
-              allowance. Great for washing cars or big yard work. Group bonuses
-              allow multiple kids to split a reward.
+              allowance. These are "First Come, First Served." If you want two
+              kids to wash the car, simply add the task twice!
             </p>
           </div>
           <div>
@@ -4536,26 +4472,6 @@ const UserGuideModal = ({ onClose }) => (
             </p>
           </div>
         </div>
-      </section>
-
-      <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
-          🙂 For Kids
-        </h3>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>
-            <strong>Dashboard:</strong> See your Todo list. Tap a chore to mark
-            it done.
-          </li>
-          <li>
-            <strong>Saving Goals 🎯:</strong> Tap the Goal tab to set a target
-            (e.g., "Lego Set") and track progress.
-          </li>
-          <li>
-            <strong>History:</strong> Tap your Balance at the top to see a full
-            history of earnings and spending.
-          </li>
-        </ul>
       </section>
 
       <div className="pt-6 border-t">
