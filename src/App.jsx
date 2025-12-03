@@ -164,28 +164,28 @@ const formatTime12hr = (timeString) => {
 };
 
 const AVATARS = [
-  "👶",
-  "👧",
-  "👦",
-  "🦸",
-  "🦸‍♀️",
-  "🥷",
-  "🧚",
-  "🧜",
-  "🧛",
-  "🧟",
-  "🤖",
-  "👽",
-  "🦊",
-  "🐱",
-  "🐶",
-  "🦁",
-  "🐯",
-  "🦄",
-  "🐲",
-  "🦖",
+  // Animals
+  "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🕷️", "🐢", "🐍", "🦎", "🦂", "🦀", "🦑", "🐙", "🦐", "🐠", "🐟", "🐡", "🐬", "🦈", "🐳", "🐋", "🐊", "🐆", "🦓", "🦍", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐏", "🐑", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦡", "🐁", "🐀", "🐿️", "🦔",
+  // Fantasy & People
+  "👶", "👧", "👦", "🦸", "🦸‍♀️", "🥷", "🧚", "🧜", "🧛", "🧟", "🤖", "👽", "👾", "👻", "💀", "💩", "🤡", "🤠", "👑", "💍", "💎", "🧠", "🦷", "🦴", "👀", "👁️",
+  // Sports & Hobbies
+  "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🎮", "🕹️", "🎲", "🎸", "🎹", "🎺", "🎻", "🥁", "🎤", "🎧", "🎨", "🎬",
+  // Food
+  "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🌽", "🥕", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🥞", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟", "🍕", "🥪", "🥙", "🌮", "🌯", "🥗", "🥘", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🍤", "🍙", "🍚", "🍘", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🥤", "🧃",
+  // Vehicles
+  "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🚚", "🚛", "🚜", "🛴", "🚲", "🛵", "🏍️", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "🚁", "🛩️", "✈️", "🛫", "🛬", "🚀", "🛸", "🛰️"
 ];
 
+const THEME_COLORS = [
+  { name: "Indigo", bg: "bg-indigo-600", light: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-700" },
+  { name: "Pink", bg: "bg-pink-500", light: "bg-pink-50", border: "border-pink-200", text: "text-pink-700" },
+  { name: "Blue", bg: "bg-blue-500", light: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
+  { name: "Green", bg: "bg-green-500", light: "bg-green-50", border: "border-green-200", text: "text-green-700" },
+  { name: "Purple", bg: "bg-purple-600", light: "bg-purple-50", border: "border-purple-200", text: "text-purple-700" },
+  { name: "Orange", bg: "bg-orange-500", light: "bg-orange-50", border: "border-orange-200", text: "text-orange-700" },
+  { name: "Red", bg: "bg-red-500", light: "bg-red-50", border: "border-red-200", text: "text-red-700" },
+  { name: "Teal", bg: "bg-teal-500", light: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+];
 // --- UI COMPONENTS ---
 
 const Button = ({
@@ -3782,6 +3782,9 @@ function KidView({
   deviceConfig,
   handleParentGate,
 }) {
+
+  const currentTheme = THEME_COLORS.find(c => c.name === user.themeColor) || THEME_COLORS[0];
+  
   const [activeTab, setActiveTab] = useState("todo");
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalName, setGoalName] = useState(user.goalName || "");
@@ -3812,26 +3815,57 @@ function KidView({
   const isCurrentWeek = weekOffset === 0;
 
   return (
-    <div className="min-h-screen bg-indigo-50 pb-20 font-sans">
+    <div className={"min-h-screen pb-20 font-sans " + currentTheme.light}>
       {/* AVATAR PICKER MODAL */}
+{/* AVATAR & THEME PICKER MODAL */}
       <Modal
         isOpen={avatarPickerOpen}
         onClose={() => setAvatarPickerOpen(false)}
-        title="Choose Your Avatar"
+        title="Customize Your Profile"
       >
-        <div className="grid grid-cols-4 gap-4">
-          {AVATARS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => {
-                updateKid(user.id, { avatar: emoji });
-                setAvatarPickerOpen(false);
-              }}
-              className="text-4xl p-2 hover:bg-indigo-50 rounded-xl transition-colors"
-            >
-              {emoji}
-            </button>
-          ))}
+        <div className="space-y-6">
+          {/* 1. COLOR PICKER */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Pick Your Color</h4>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {THEME_COLORS.map((color) => (
+                <button
+                  key={color.name}
+                  onClick={() => updateKid(user.id, { themeColor: color.name })}
+                  className={`w-10 h-10 rounded-full ${color.bg} border-4 transition-transform hover:scale-110 ${
+                    user.themeColor === color.name ? "border-white shadow-lg ring-2 ring-gray-300" : "border-transparent opacity-70 hover:opacity-100"
+                  }`}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* 2. AVATAR PICKER */}
+          <div>
+             <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Pick Your Avatar</h4>
+             <div className="grid grid-cols-4 gap-4 max-h-60 overflow-y-auto p-2">
+              {AVATARS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    updateKid(user.id, { avatar: emoji });
+                    // Optional: Close modal on avatar pick, or let them pick color too
+                    // setAvatarPickerOpen(false); 
+                  }}
+                  className={`text-4xl p-2 rounded-xl transition-colors ${
+                    user.avatar === emoji ? currentTheme.light + " ring-2 ring-offset-1 ring-" + currentTheme.name.toLowerCase() + "-300" : "hover:bg-gray-100"
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button onClick={() => setAvatarPickerOpen(false)} className="w-full">
+            Done
+          </Button>
         </div>
       </Modal>
 
@@ -3883,7 +3917,7 @@ function KidView({
       </Modal>
 
       {/* HEADER SECTION */}
-      <div className="bg-indigo-600 text-white rounded-b-3xl shadow-xl p-6 pt-8 relative overflow-hidden">
+      <div className={currentTheme.bg + " text-white rounded-b-3xl shadow-xl p-6 pt-8 relative overflow-hidden"}>
         <div className="absolute top-0 right-0 p-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
         <div className="flex justify-between items-start mb-4 relative z-10">
           <div className="flex items-center gap-3">
