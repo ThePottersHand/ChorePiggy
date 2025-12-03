@@ -3828,13 +3828,25 @@ function KidView({
 
           {/* RIGHT SIDE BUTTONS (Device Settings & Logout) */}
 <div className="flex gap-2">
+            {/* 1. Parent Settings (Always requires PIN) */}
             <button
               onClick={handleParentGate}
               className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
-              title="Parent Settings / Device Mode"
+              title="Parent Settings"
             >
               <Settings size={18} />
             </button>
+
+            {/* 2. Switch User (NO PIN) - Only for Family/Shared modes */}
+            {deviceConfig?.mode !== "KID_SOLO" && (
+              <button
+                onClick={logout}
+                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
+                title="Switch User"
+              >
+                <LogOut size={18} />
+              </button>
+            )}
           </div>
         </div>
 
