@@ -1585,36 +1585,28 @@ export default function App() {
       );
     }
   };
-  const submitBonus = async (bonus, kidId) => {
+const submitBonus = async (bonus, kidId) => {
+    // 1. Create the pending log immediately
     await setDoc(getFamilyDoc("task_log"), {
       type: "bonus",
       taskId: bonus.id,
       title: bonus.title,
-      reward: bonus.reward,
+      reward: bonus.reward, // Fixed amount
       kidId,
       status: "pending",
       timestamp: new Date().toISOString(),
-      isGroupTask: bonus.maxKids > 1,
+      isGroupTask: false, // No longer a group task
     });
-    if (!bonus.maxKids || bonus.maxKids <= 1) {
-      await deleteDoc(getFamilyDoc("bonuses", bonus.id));
-    }
+
+    // 2. Delete the bonus from the board so no one else can grab it
+    await deleteDoc(getFamilyDoc("bonuses", bonus.id));
   };
-  const joinBonus = async (bonusId, kidId) => {
-    const bonusRef = getFamilyDoc("bonuses", bonusId);
-    const bonus = bonuses.find((b) => b.id === bonusId);
-    const currentWorkers = bonus.workers || [];
-    if (!currentWorkers.includes(kidId)) {
-      await updateDoc(bonusRef, { workers: [...currentWorkers, kidId] });
-    }
-  };
-  const addBonus = async (title, reward, maxKids = 1) => {
+const addBonus = async (title, reward) => {
+    // Simple: Just title and reward. No workers array, no maxKids.
     setDoc(getFamilyDoc("bonuses"), {
       title,
-      reward,
+      reward: Number(reward),
       status: "available",
-      maxKids,
-      workers: [],
     });
   };
   const approveTask = async (task, calculatedValue, parentName) => {
@@ -2262,14 +2254,14 @@ export default function App() {
           }}
         />
       )}
-      {view === "kid" && (
+{view === "kid" && (
         <KidView
           user={kids.find((k) => k.id === currentUser.id) || currentUser}
           data={data}
           logout={handleLogout}
           submitChore={submitChore}
           submitBonus={submitBonus}
-          joinBonus={joinBonus}
+          // joinBonus removed
           updateKid={updateKid}
           calculateWeeklyStats={calculateWeeklyStats}
           isChoreActive={isChoreActive}
@@ -2344,7 +2336,6 @@ function ParentView({
   const [oneOffDate, setOneOffDate] = useState("");
   const [bonusTitle, setBonusTitle] = useState("");
   const [bonusReward, setBonusReward] = useState("2");
-  const [bonusMaxKids, setBonusMaxKids] = useState("1");
   const [newParentPin, setNewParentPin] = useState("");
   const [newParentName, setNewParentName] = useState("");
   const [newParentPin2, setNewParentPin2] = useState("");
@@ -3706,7 +3697,7 @@ const handleBonusApproval = (task) => {
                 <Star className="fill-yellow-500 text-yellow-500" /> Add Bonus
                 Opportunity
               </h3>
-              <div className="flex flex-col sm:flex-row gap-2">
+<div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1">
                   <input
                     className="w-full border border-yellow-200 p-2 rounded-lg"
@@ -3716,20 +3707,7 @@ const handleBonusApproval = (task) => {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <div
-                    className="flex items-center border border-yellow-200 p-2 rounded-lg bg-white"
-                    title="Max Kids"
-                  >
-                    <Users size={16} className="text-yellow-500 mr-2" />
-                    <input
-                      className="w-8 text-center outline-none"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={bonusMaxKids || 1}
-                      onChange={(e) => setBonusMaxKids(e.target.value)}
-                    />
-                  </div>
+                  {/* Amount Input */}
                   <div className="flex items-center border border-yellow-200 p-2 rounded-lg bg-white w-24">
                     <span className="text-gray-400 mr-1">$</span>
                     <input
@@ -3742,13 +3720,8 @@ const handleBonusApproval = (task) => {
                   <Button
                     onClick={() => {
                       if (bonusTitle) {
-                        addBonus(
-                          bonusTitle,
-                          Number(bonusReward),
-                          Number(bonusMaxKids || 1)
-                        );
+                        addBonus(bonusTitle, bonusReward); // Simplified call
                         setBonusTitle("");
-                        setBonusMaxKids(1);
                       }
                     }}
                     className="bg-yellow-500 hover:bg-yellow-600 text-white"
@@ -3760,36 +3733,36 @@ const handleBonusApproval = (task) => {
             </Card>
             <div className="space-y-2">
               <h3 className="font-bold text-gray-700">Available Bonuses</h3>
-              {data.bonuses.map((bonus) => (
+{data.bonuses.map((bonus) => (
                 <div
                   key={bonus.id}
-                  className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
+                  className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex justify-between items-center"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
-                      <Star size={16} className="fill-yellow-500" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
+                      <Star
+                        size={20}
+                        className="fill-yellow-500 text-yellow-500"
+                      />
                     </div>
                     <div>
-                      <span className="font-semibold text-gray-700">
+                      <span className="font-bold text-gray-800 block">
                         {bonus.title}
                       </span>
-                      {bonus.maxKids > 1 && (
-                        <span className="text-[10px] text-yellow-600 flex items-center gap-1">
-                          <Users size={10} /> Group Task (
-                          {bonus.workers?.length || 0}/{bonus.maxKids})
-                        </span>
-                      )}
+                      <span className="text-xs text-yellow-700 font-bold uppercase tracking-wide">
+                        First Come, First Served
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                      {formatCurrency(bonus.reward)}
-                    </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="font-bold text-lg text-green-600 bg-white px-3 py-1 rounded-lg shadow-sm">
+                      +{formatCurrency(bonus.reward)}
+                    </div>
                     <button
-                      onClick={() => deleteBonus(bonus.id)}
-                      className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                      onClick={() => submitBonus(bonus, user.id)}
+                      className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95"
                     >
-                      <Trash2 size={18} />
+                      I Did It!
                     </button>
                   </div>
                 </div>
@@ -3808,7 +3781,6 @@ function KidView({
   logout,
   submitChore,
   submitBonus,
-  joinBonus,
   updateKid,
   calculateWeeklyStats,
   isChoreActive,
