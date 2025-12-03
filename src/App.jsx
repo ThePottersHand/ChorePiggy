@@ -1811,10 +1811,39 @@ const onPinPadSuccess = (pin) => {
       )}
       <InstallPrompt />
       {/* --- GLOBAL FAMILY SETTINGS MODAL --- */}
-      <Modal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} title="Family Settings">
+<Modal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} title="Family Settings">
         <div className="space-y-6">
-          
-          {/* 1. DEVICE MODE SETTINGS */}
+
+          {/* 1. NEW: MY PROFILE SECTION */}
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 animate-in fade-in slide-in-from-top-2">
+            <h4 className="font-bold text-blue-800 text-sm uppercase mb-3">My Profile</h4>
+            <div className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow-inner">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <span className="font-bold text-gray-800 block">{settingsUser?.name || "Parent"}</span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Admin Access</span>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                onClick={() => {
+                  setShowSettingsModal(false); // Close settings
+                  setPinTarget(settingsUser); // Target the current user
+                  setIsPinSetup(true); // Enable "Setup Mode" (allows typing new PIN)
+                  setShowPinPad(true); // Open the Pin Pad
+                }}
+              >
+                <KeyRound size={16} /> Update PIN
+              </Button>
+            </div>
+          </div>
+
+          {/* 2. DEVICE MODE SETTINGS */}
           <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
             <h4 className="font-bold text-indigo-800 text-sm uppercase">This Device Mode</h4>
             <div className="flex flex-col gap-2">
@@ -1843,7 +1872,7 @@ const onPinPadSuccess = (pin) => {
             </div>
           </div>
 
-          {/* 2. FAMILY ACCESS (INVITES) */}
+          {/* 3. FAMILY ACCESS (INVITES) */}
           <div className="space-y-4 pt-4 border-t border-gray-100">
              <h4 className="font-bold text-gray-700 text-sm uppercase">Family Access</h4>
              <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-sm text-gray-600 space-y-3">
@@ -1867,7 +1896,7 @@ const onPinPadSuccess = (pin) => {
              </div>
           </div>
 
-          {/* 3. FULL LOGOUT */}
+          {/* 4. FULL LOGOUT */}
           <div className="pt-4 border-t border-gray-100">
             <button onClick={() => { handleFullSignOut(); setShowSettingsModal(false); }} className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100">
               <LogOut size={18}/> Full Sign Out
