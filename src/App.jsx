@@ -942,6 +942,7 @@ export default function App() {
   const [showPinPad, setShowPinPad] = useState(false);
   const [pinTarget, setPinTarget] = useState(null);
   const [isPinSetup, setIsPinSetup] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 const [showSettingsModal, setShowSettingsModal] = useState(false);
 const [settingsUser, setSettingsUser] = useState(null);
   const [showInitModal, setShowInitModal] = useState(false);
@@ -1122,6 +1123,9 @@ useEffect(() => {
 useEffect(() => {
     if (!authUser || !currentFamilyId) return;
 
+    // 1. Reset loading state when family changes
+    setDataLoaded(false); 
+
     // 1. Fetch Family Name
     getDoc(doc(db, "families", currentFamilyId)).then((snap) => {
       if (snap.exists())
@@ -1133,13 +1137,12 @@ useEffect(() => {
 
     const getSub = (name) => collection(db, "families", currentFamilyId, name);
 
-    // 2. Define Standard Collections (Small data, okay to read all)
+    // 2. Define Standard Collections
     const COLLECTIONS = {
       users: getSub("users"),
       kids: getSub("kids"),
       chores: getSub("chores"),
       bonuses: getSub("bonuses"),
-      // Note: 'task_log' is removed from here to handle separately below
     };
 
     // 3. Define Config Listener
@@ -1159,7 +1162,10 @@ useEffect(() => {
             id: doc.id,
             ...doc.data(),
           }));
-          if (key === "users") setUsers(data);
+          if (key === "users") {
+             setUsers(data);
+             setDataLoaded(true); // <--- 2. Data is now ready!
+          }
           if (key === "kids") setKids(data);
           if (key === "chores") setChores(data);
           if (key === "bonuses") setBonuses(data);
@@ -1168,43 +1174,22 @@ useEffect(() => {
       );
     });
 
-    // 5. OPTIMIZED TASK LOG LISTENER (Limit to last 150 items)
-    // This prevents hitting the Firestore 'Read' limit after months of usage
-    const taskLogQuery = query(
-      getSub("task_log"),
-      orderBy("timestamp", "desc"),
-      limit(150)
-    );
-
-    const taskLogUnsub = onSnapshot(
-      taskLogQuery,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    // ... (Keep the rest of the existing taskLog/history listeners logic below exactly as it was) ...
+    // Note: If you copy-pasted this whole block, make sure you keep the taskLogQuery and historyQuery parts below this.
+    
+    // ... (Existing taskLog logic) ...
+    const taskLogQuery = query(getSub("task_log"), orderBy("timestamp", "desc"), limit(150));
+    const taskLogUnsub = onSnapshot(taskLogQuery, (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setTaskLog(data);
-      },
-      (error) => console.log("Error fetching task_log:", error)
-    );
+    });
 
-    // 6. History Listener (Already limited)
-    const historyQuery = query(
-      getSub("history"),
-      orderBy("date", "desc"),
-      limit(100)
-    );
-    const historyUnsub = onSnapshot(
-      historyQuery,
-      (snapshot) => {
-        setHistory(
-          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        );
-      },
-      (error) => console.log("History Error", error)
-    );
+    // ... (Existing history logic) ...
+    const historyQuery = query(getSub("history"), orderBy("date", "desc"), limit(100));
+    const historyUnsub = onSnapshot(historyQuery, (snapshot) => {
+        setHistory(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    });
 
-    // Cleanup all listeners on unmount
     return () => {
       unsubscribers.forEach((unsub) => unsub());
       taskLogUnsub();
@@ -1711,7 +1696,7 @@ const onPinPadSuccess = (pin) => {
     };
   };
 
-  if (loading) {
+if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-400 animate-pulse">
         Loading ChorePiggy...
