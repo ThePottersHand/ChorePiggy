@@ -73,6 +73,7 @@ import {
   orderBy,
   limit,
   getDoc,
+  increment,
 } from "firebase/firestore";
 
 // --- FIREBASE CONFIGURATION ---
@@ -1416,12 +1417,13 @@ const onPinPadSuccess = (pin) => {
 };
 
   // CRUD
-  const logTransaction = async (
+const logTransaction = async (
     kidId,
     amount,
     type,
     description,
-    actorName
+    actorName,
+    newBalance // <--- 1. Add this parameter
   ) => {
     await addDoc(getFamilyCol("history"), {
       kidId,
@@ -1430,15 +1432,25 @@ const onPinPadSuccess = (pin) => {
       description,
       date: new Date().toISOString(),
       by: actorName || "Unknown",
+      balance: newBalance, // <--- 2. Save it to the database
     });
   };
-  const updateBalance = async (kidId, amount, type, description, actorName) => {
+const updateBalance = async (kidId, amount, type, description, actorName) => {
+    const safeAmount = Number(amount) || 0;
     const kid = kids.find((k) => k.id === kidId);
+
     if (kid) {
+      // Calculate what the new balance WILL be for the log
+      // (Handle cases where current balance might be missing or NaN)
+      const currentBalance = Number(kid.balance) || 0;
+      const newBalance = currentBalance + safeAmount;
+
       await updateDoc(getFamilyDoc("kids", kidId), {
-        balance: kid.balance + amount,
+        balance: increment(safeAmount),
       });
-      await logTransaction(kidId, amount, type, description, actorName);
+
+      // Pass the calculated newBalance to the log
+      await logTransaction(kidId, safeAmount, type, description, actorName, newBalance);
     }
   };
   const addParent = async (name, pin) => {
@@ -2441,31 +2453,32 @@ function ParentView({
             <div className="space-y-2">
               {data.history.map((h) => {
                 const kid = data.kids.find((k) => k.id === h.kidId);
-                return (
-                  <div
-                    key={h.id}
-                    className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center text-sm"
-                  >
-                    <div>
-                      <div className="font-bold text-gray-700 flex items-center gap-2">
-                        {kid && (
-                          <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">
-                            {kid.name}
-                          </span>
-                        )}
-                        <span>{h.description}</span>
-                      </div>
-                      <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                        <span>{new Date(h.date).toLocaleString()}</span>
-                        <span>•</span>
-                        <span className="font-medium text-blue-500">
-                          by {h.by || "System"}
+return (
+                <div
+                  key={h.id}
+                  className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center text-sm"
+                >
+                  <div>
+                    <div className="font-bold text-gray-700 flex items-center gap-2">
+                      {kid && (
+                        <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">
+                          {kid.name}
                         </span>
-                      </div>
+                      )}
+                      <span>{h.description}</span>
                     </div>
+                    <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                      <span>{new Date(h.date).toLocaleString()}</span>
+                      <span>•</span>
+                      <span className="font-medium text-blue-500">
+                        by {h.by || "System"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
                     {h.amount !== 0 && (
                       <span
-                        className={`font-bold ${
+                        className={`font-bold block ${
                           h.amount > 0 ? "text-green-600" : "text-red-600"
                         }`}
                       >
@@ -2473,8 +2486,15 @@ function ParentView({
                         {formatCurrency(h.amount)}
                       </span>
                     )}
+                    {/* NEW: Display Running Balance if it exists */}
+                    {h.balance !== undefined && (
+                       <span className="text-[10px] text-gray-400 font-mono">
+                         Bal: {formatCurrency(h.balance)}
+                       </span>
+                    )}
                   </div>
-                );
+                </div>
+              );
               })}
             </div>
           </div>
@@ -3600,30 +3620,37 @@ const [showHelp, setShowHelp] = useState(false);
           {data.history
             .filter((h) => h.kidId === user.id)
             .map((h) => (
-              <div
-                key={h.id}
-                className="bg-gray-50 p-3 rounded-lg flex justify-between items-center"
-              >
-                <div>
-                  <div className="font-bold text-gray-700 text-sm">
-                    {h.description}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {new Date(h.date).toLocaleDateString()}
-                  </div>
+ <div
+              key={h.id}
+              className="bg-gray-50 p-3 rounded-lg flex justify-between items-center"
+            >
+              <div>
+                <div className="font-bold text-gray-700 text-sm">
+                  {h.description}
                 </div>
-                <div className="text-right">
-                  <div
-                    className={`font-bold ${
-                      h.amount > 0 ? "text-green-600" : "text-red-500"
-                    }`}
-                  >
-                    {h.amount > 0 ? "+" : ""}
-                    {formatCurrency(h.amount)}
-                  </div>
-                  <div className="text-[10px] text-gray-400">{h.by}</div>
+                <div className="text-xs text-gray-400">
+                  {new Date(h.date).toLocaleDateString()}
                 </div>
               </div>
+              <div className="text-right">
+                <div
+                  className={`font-bold ${
+                    h.amount > 0 ? "text-green-600" : "text-red-500"
+                  }`}
+                >
+                  {h.amount > 0 ? "+" : ""}
+                  {formatCurrency(h.amount)}
+                </div>
+                
+                {/* NEW: This shows the running balance if available */}
+                {h.balance !== undefined && (
+                  <div className="text-[10px] text-gray-500 font-medium">
+                     = {formatCurrency(h.balance)}
+                  </div>
+                )}
+                
+              </div>
+            </div>
             ))}
           {data.history.filter((h) => h.kidId === user.id).length === 0 && (
             <p className="text-center text-gray-400">No transactions yet.</p>
