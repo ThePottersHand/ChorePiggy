@@ -909,6 +909,9 @@ const AuthScreen = ({ inviteInfo }) => {
                 <li>
                   <strong>Parental Consent:</strong> You are the guardian authorized to create profiles for the minors added to this family.
                 </li>
+                <li>
+                  <strong>As-Is Service:</strong> We are not responsible for data loss or family disputes over allowance!
+                </li>
               </ul>
             </div>
           )}
