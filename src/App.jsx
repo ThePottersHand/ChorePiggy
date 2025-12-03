@@ -1905,8 +1905,34 @@ const onPinPadSuccess = (pin) => {
           </div>
 
           {/* SAVE BUTTON */}
-          <div className="pt-2">
-             <Button onClick={() => setShowSettingsModal(false)} className="w-full">Save & Close</Button>
+<div className="pt-2">
+            <Button
+              className="w-full"
+              onClick={() => {
+                setShowSettingsModal(false);
+
+                // --- NEW LOGIC: Immediate View Switch ---
+                if (deviceConfig?.mode === "PARENT_SOLO" && deviceConfig.targetId) {
+                  const target = users.find((u) => u.id === deviceConfig.targetId);
+                  if (target) {
+                    setCurrentUser(target);
+                    setView("parent");
+                  }
+                } else if (deviceConfig?.mode === "KID_SOLO" && deviceConfig.targetId) {
+                  const target = kids.find((k) => k.id === deviceConfig.targetId);
+                  if (target) {
+                    setCurrentUser(target);
+                    setView("kid");
+                  }
+                } else if (deviceConfig?.mode === "FAMILY") {
+                  // If switching to Family mode, log out to show the Profile Picker
+                  setCurrentUser(null);
+                  setView("login");
+                }
+              }}
+            >
+              Save & Close
+            </Button>
           </div>
         </div>
       </Modal>
