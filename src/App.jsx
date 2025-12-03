@@ -777,104 +777,7 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
   );
 };
 
-const InstallPrompt = () => {
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-  useEffect(() => {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone;
-
-    if (isIosDevice && !isStandalone) {
-      setIsIOS(true);
-      setShowPrompt(true);
-    }
-
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowPrompt(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-    };
-  }, []);
-
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === "accepted") {
-          setShowPrompt(false);
-        }
-        setDeferredPrompt(null);
-      });
-    }
-  };
-
-  if (!showPrompt) return null;
-
-  return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4">
-      <div className="bg-white rounded-xl shadow-2xl border border-indigo-100 p-4 flex flex-col gap-3 relative">
-        <button
-          onClick={() => setShowPrompt(false)}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-        >
-          <X size={16} />
-        </button>
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Download className="text-indigo-600" size={20} />
-          </div>
-          <div>
-            <h4 className="font-bold text-gray-800">Install App</h4>
-            <p className="text-sm text-gray-500 leading-tight mt-1">
-              Add to your home screen for full screen view and easier access!
-            </p>
-          </div>
-        </div>
-
-        {isIOS ? (
-          <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <span>1. Tap the</span>
-              <span className="inline-flex items-center gap-1 font-bold text-blue-600">
-                <Share size={14} /> Share
-              </span>
-              <span>button in your browser bar.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>2. Scroll down and tap</span>
-              <span className="inline-flex items-center gap-1 font-bold text-gray-800">
-                <Plus
-                  size={14}
-                  className="border border-gray-400 rounded-[4px] p-[1px]"
-                />{" "}
-                Add to Home Screen
-              </span>
-              .
-            </div>
-          </div>
-        ) : (
-          <Button
-            onClick={handleInstallClick}
-            className="w-full bg-indigo-600 hover:bg-indigo-700"
-          >
-            Install Now
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const AuthScreen = ({ inviteInfo }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -1989,7 +1892,7 @@ const addBonus = async (title, reward) => {
           </div>
         </Modal>
       )}
-      <InstallPrompt />
+     
       {/* --- GLOBAL FAMILY SETTINGS MODAL --- */}
       <Modal
         isOpen={showSettingsModal}
