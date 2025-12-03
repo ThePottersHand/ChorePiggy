@@ -2320,21 +2320,35 @@ function ParentView({
             <ShieldCheck /> {user.name}'s Dashboard
           </div>
 <div className="flex gap-2">
-  {/* NEW HELP BUTTON */}
+  {/* 1. HELP BUTTON */}
   <button
     onClick={() => setShowHelp(true)}
-    className="text-gray-400 hover:text-blue-600 transition-colors"
+    className="text-gray-400 hover:text-blue-600 transition-colors p-1"
     title="User Guide"
   >
     <HelpCircle size={20} />
   </button>
-            <button
-onClick={onOpenSettings} // <--- CHANGE THIS
-  className="text-gray-500 hover:text-blue-600"
->
-  <Settings size={20} />
-            </button>
-          </div>
+
+  {/* 2. SETTINGS BUTTON */}
+  <button
+    onClick={onOpenSettings}
+    className="text-gray-500 hover:text-blue-600 p-1"
+    title="Settings"
+  >
+    <Settings size={20} />
+  </button>
+
+  {/* 3. SWITCH USER BUTTON (Only show if NOT in Parent Solo mode) */}
+  {deviceConfig?.mode !== "PARENT_SOLO" && (
+    <button
+      onClick={logout}
+      className="text-red-400 hover:text-red-600 transition-colors p-1"
+      title="Switch User / Logout"
+    >
+      <LogOut size={20} />
+    </button>
+  )}
+</div>
         </div>
       </header>
       <main className="max-w-4xl mx-auto p-4 space-y-6">
@@ -3529,7 +3543,7 @@ function KidView({
   const [goalAmount, setGoalAmount] = useState(user.savingsGoal || 0);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-
+const [showHelp, setShowHelp] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
@@ -3641,9 +3655,18 @@ function KidView({
 
           {/* RIGHT SIDE BUTTONS (Device Settings & Logout) */}
 <div className="flex gap-2">
-            {/* 1. Parent Settings (Always requires PIN) */}
-            <button
-              onClick={handleParentGate}
+  {/* 1. NEW HELP BUTTON */}
+  <button
+    onClick={() => setShowHelp(true)}
+    className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
+    title="User Guide"
+  >
+    <HelpCircle size={18} />
+  </button>
+
+  {/* 2. Parent Settings (Existing) */}
+  <button
+    onClick={handleParentGate}
               className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
               title="Parent Settings"
             >
