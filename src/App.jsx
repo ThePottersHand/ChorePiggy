@@ -185,6 +185,12 @@ const THEME_COLORS = [
   { name: "Orange", bg: "bg-orange-500", light: "bg-orange-50", border: "border-orange-200", text: "text-orange-700" },
   { name: "Red", bg: "bg-red-500", light: "bg-red-50", border: "border-red-200", text: "text-red-700" },
   { name: "Teal", bg: "bg-teal-500", light: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+  { name: "Yellow", bg: "bg-yellow-400", light: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-800" },
+  { name: "Cyan", bg: "bg-cyan-500", light: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-700" },
+  { name: "Lime", bg: "bg-lime-500", light: "bg-lime-50", border: "border-lime-200", text: "text-lime-700" },
+  { name: "Fuchsia", bg: "bg-fuchsia-500", light: "bg-fuchsia-50", border: "border-fuchsia-200", text: "text-fuchsia-700" },
+  { name: "Rose", bg: "bg-rose-500", light: "bg-rose-50", border: "border-rose-200", text: "text-rose-700" },
+  { name: "Sky", bg: "bg-sky-500", light: "bg-sky-50", border: "border-sky-200", text: "text-sky-700" },
 ];
 // --- UI COMPONENTS ---
 
@@ -3796,6 +3802,8 @@ function KidView({
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
 
+const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
+
   const percentageEarned =
     Math.min((stats.earned / stats.potential) * 100, 100) || 0;
   const percentagePending =
@@ -4062,15 +4070,24 @@ function KidView({
           >
             <CalendarDays size={20} /> Tasks
           </button>
-          <button
+<button
             onClick={() => setActiveTab("savings")}
-            className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all ${
+            className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all relative ${
               activeTab === "savings"
-                ? "bg-indigo-100 text-indigo-700"
+                ? `bg-${currentTheme.light.split('-')[1]}-100 text-${currentTheme.text.split('-')[1]}-700`
                 : "text-gray-400 hover:bg-gray-50"
-            }`}
+            } ${isGoalReached && activeTab !== 'savings' ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400" : ""}`}
           >
-            <Target size={20} /> Goal
+            <Target size={20} className={isGoalReached ? "fill-yellow-500 text-yellow-600" : ""} /> 
+            {isGoalReached ? "GOAL!" : "Goal"}
+            
+            {/* Notification Dot */}
+            {isGoalReached && activeTab !== 'savings' && (
+              <span className="absolute top-1 right-2 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab("bonus")}
@@ -4263,16 +4280,30 @@ function KidView({
         )}
 
         {/* TAB CONTENT: SAVINGS */}
+{/* TAB CONTENT: SAVINGS */}
         {activeTab === "savings" && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-4">
-            <Card className="p-6 text-center space-y-4">
+          <div className="space-y-6 animate-in slide-in-from-bottom-4 relative">
+            
+            {/* --- FIREWORKS CELEBRATION --- */}
+            {isGoalReached && (
+              <div className="absolute inset-x-0 -top-4 z-50 text-center pointer-events-none">
+                 <Confetti />
+                 <div className="bg-yellow-400 text-yellow-900 font-black text-xl py-2 px-4 rounded-full shadow-lg border-4 border-white inline-block animate-bounce relative z-50 transform -rotate-2">
+                   🎉 GOAL REACHED! 🎉
+                 </div>
+              </div>
+            )}
+
+            <Card className={`p-6 text-center space-y-4 ${isGoalReached ? "border-4 border-yellow-400 shadow-yellow-200 shadow-xl bg-yellow-50" : ""}`}>
               <h2 className="text-gray-500 font-semibold uppercase tracking-wider text-xs">
                 Saving For
               </h2>
+              {/* ... (Keep the rest of your existing logic for editingGoal/Viewing Goal exactly as it was) ... */}
               {editingGoal ? (
+                /* ... your existing editing form ... */
                 <div className="space-y-4">
                   <input
-                    className="w-full text-center font-bold text-2xl border-b-2 border-indigo-200 focus:outline-none"
+                    className="w-full text-center font-bold text-2xl border-b-2 border-indigo-200 focus:outline-none bg-transparent"
                     value={goalName}
                     onChange={(e) => setGoalName(e.target.value)}
                     placeholder="Goal Name"
@@ -4281,7 +4312,7 @@ function KidView({
                     <span className="text-xl font-bold text-gray-400">$</span>
                     <input
                       type="number"
-                      className="w-24 text-center font-bold text-2xl border-b-2 border-indigo-200 focus:outline-none"
+                      className="w-24 text-center font-bold text-2xl border-b-2 border-indigo-200 focus:outline-none bg-transparent"
                       value={goalAmount}
                       onChange={(e) => setGoalAmount(e.target.value)}
                     />
@@ -4313,7 +4344,7 @@ function KidView({
                   {user.savingsGoal > 0 ? (
                     <>
                       <div className="flex items-center justify-center gap-2">
-                        <Target className="text-indigo-500" />
+                        <Target className={isGoalReached ? "text-yellow-600 animate-spin-slow" : "text-indigo-500"} />
                         <h3 className="text-3xl font-extrabold text-indigo-900">
                           {user.goalName}
                         </h3>
@@ -4321,9 +4352,9 @@ function KidView({
                       <p className="text-gray-500 font-medium">
                         Goal: {formatCurrency(user.savingsGoal)}
                       </p>
-                      <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden w-full">
+                      <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden w-full border border-gray-200">
                         <div
-                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-400 to-indigo-600 transition-all duration-1000 ease-out"
+                          className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${isGoalReached ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 animate-pulse" : "bg-gradient-to-r from-blue-400 to-indigo-600"}`}
                           style={{
                             width: `${Math.min(
                               (user.balance / user.savingsGoal) * 100,
@@ -4332,12 +4363,19 @@ function KidView({
                           }}
                         />
                       </div>
-                      <p className="text-sm font-bold text-indigo-600">
+                      <p className={`text-sm font-bold ${isGoalReached ? "text-yellow-700 text-lg" : "text-indigo-600"}`}>
                         {Math.round(
                           Math.min((user.balance / user.savingsGoal) * 100, 100)
                         )}
                         % Reached
                       </p>
+                      
+                      {isGoalReached && (
+                         <div className="text-xs font-bold text-green-600 bg-green-100 p-2 rounded-lg animate-pulse">
+                           You did it! Ask your parent to cash out!
+                         </div>
+                      )}
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -4349,6 +4387,7 @@ function KidView({
                     </>
                   ) : (
                     <div className="py-8 text-center space-y-4">
+                      {/* ... existing empty state ... */}
                       <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-300">
                         <Target size={32} />
                       </div>
@@ -4569,4 +4608,40 @@ const UserGuideModal = ({ onClose }) => (
       </div>
     </div>
   </Modal>
+
+  
 );
+
+// --- SIMPLE FIREWORKS COMPONENT ---
+const Confetti = () => {
+  // Create 50 particles with random positions and colors
+  const particles = Array.from({ length: 50 }).map((_, i) => ({
+    id: i,
+    x: Math.random() * 100, // random % left
+    y: Math.random() * 100, // random % top
+    color: ["#FFD700", "#FF69B4", "#00BFFF", "#32CD32", "#FFA500"][Math.floor(Math.random() * 5)],
+    delay: Math.random() * 2, // random animation delay
+  }));
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute w-2 h-2 rounded-full animate-ping opacity-75"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            backgroundColor: p.color,
+            animationDuration: '1s',
+            animationDelay: `${p.delay}s`,
+            animationIterationCount: 'infinite'
+          }}
+        />
+      ))}
+      <div className="absolute inset-0 flex items-center justify-center animate-bounce">
+         <span className="text-6xl filter drop-shadow-lg">🎆</span>
+      </div>
+    </div>
+  );
+};
