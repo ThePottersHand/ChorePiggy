@@ -899,6 +899,20 @@ const AuthScreen = ({ inviteInfo }) => {
             </p>
           )}
 
+          {!isLogin && (
+            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 my-2">
+              <p className="font-bold mb-1">By creating an account, you agree:</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>
+                  <strong>Not a Bank:</strong> This is a tracking tool only. No real funds are held or transferred.
+                </li>
+                <li>
+                  <strong>Parental Consent:</strong> You are the guardian authorized to create profiles for the minors added to this family.
+                </li>
+              </ul>
+            </div>
+          )}
+
           <Button type="submit" className="w-full py-3 text-lg">
             {isLogin
               ? inviteInfo
@@ -1167,9 +1181,37 @@ export default function App() {
             id: doc.id,
             ...doc.data(),
           }));
-          if (key === "users") {
+if (key === "users") {
             setUsers(data);
-            setDataLoaded(true); // <--- 2. Data is now ready!
+            setDataLoaded(true);
+
+            // --- SECURITY CHECK ---
+            // If the user list has loaded, but I (the current user) am NOT in it,
+            // it means I have been deleted by the admin.
+            if (data.length > 0 && !data.find((u) => u.id === authUser.uid)) {
+              alert("You have been removed from this family.");
+
+              // 1. Remove this family from browser memory so we don't auto-rejoin
+              const currentKnown = JSON.parse(
+                localStorage.getItem("chorePiggy_knownFamilies") || "[]"
+              );
+              const newKnown = currentKnown.filter(
+                (id) => id !== currentFamilyId
+              );
+              localStorage.setItem(
+                "chorePiggy_knownFamilies",
+                JSON.stringify(newKnown)
+              );
+              setKnownFamilyIds(newKnown);
+
+              // 2. Clear Device Config (Auto-login preferences)
+              localStorage.removeItem("chorePiggy_deviceConfig");
+              setDeviceConfig(null);
+
+              // 3. Boot out to main menu immediately
+              setCurrentFamilyId(null);
+              setView("login");
+            }
           }
           if (key === "kids") setKids(data);
           if (key === "chores") setChores(data);
@@ -2016,6 +2058,7 @@ const addBonus = async (title, reward) => {
               </div>
             </div>
             {/* List other parents */}
+{/* List other parents */}
             <div className="space-y-2">
               {users
                 .filter((u) => u.role === "parent" && u.id !== settingsUser?.id)
@@ -2025,12 +2068,20 @@ const addBonus = async (title, reward) => {
                     className="flex justify-between items-center bg-gray-50 p-2 rounded"
                   >
                     <span className="font-bold text-gray-700">{p.name}</span>
-                    <button
-                      onClick={() => deleteParent(p.id)}
-                      className="text-red-400 hover:text-red-600"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    
+                    {/* NEW CHECK: If this parent ID matches the Family ID, they are the owner */}
+                    {p.id === currentFamilyId ? (
+                       <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-1 rounded-full border border-blue-200">
+                         Owner
+                       </span>
+                    ) : (
+                      <button
+                        onClick={() => deleteParent(p.id)}
+                        className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
