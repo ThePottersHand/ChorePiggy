@@ -584,11 +584,13 @@ const SetupWizard = ({
     </Modal>
   );
 };
-const DeviceSetupWizard = ({ kids, onComplete }) => {
+const DeviceSetupWizard = ({ kids, users = [], onComplete }) => {
   const [step, setStep] = useState("select-mode");
   const handleModeSelect = (mode) => {
     if (mode === "KID_SOLO") {
       setStep("select-kid");
+    } else if (mode === "PARENT_SOLO") {
+      setStep("select-parent");
     } else {
       onComplete({ mode, targetId: null });
     }
@@ -620,18 +622,16 @@ const DeviceSetupWizard = ({ kids, onComplete }) => {
               </div>
             </button>
             <button
-              onClick={() => handleModeSelect("KIDS_SHARED")}
-              className="p-4 border-2 rounded-xl hover:bg-purple-50 hover:border-purple-200 text-left flex items-center gap-3 transition-colors group"
+              onClick={() => handleModeSelect("PARENT_SOLO")}
+              className="p-4 border-2 rounded-xl hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3 transition-colors group"
             >
-              <div className="bg-purple-100 p-3 rounded-full text-purple-600 group-hover:bg-purple-200">
-                <Users size={24} />
+              <div className="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:bg-blue-200">
+                <ShieldCheck size={24} />
               </div>
               <div>
-                <span className="font-bold block text-gray-800">
-                  Just the Kids
-                </span>
+                <span className="font-bold block text-gray-800">Only Me</span>
                 <span className="text-xs text-gray-500">
-                  Shared device for multiple kids (No Parents).
+                  Parent personal device. Auto-logins to dashboard.
                 </span>
               </div>
             </button>
@@ -647,34 +647,36 @@ const DeviceSetupWizard = ({ kids, onComplete }) => {
                   Specific Kid
                 </span>
                 <span className="text-xs text-gray-500">
-                  Personal device. Auto-logins.
+                  Kid personal device. Auto-logins.
                 </span>
               </div>
             </button>
           </div>
         )}
 
-        {step === "select-kid" && (
+        {(step === "select-kid" || step === "select-parent") && (
           <div className="space-y-2 animate-in fade-in slide-in-from-right-4">
             <p className="text-xs font-bold text-gray-500 uppercase mb-2">
-              Select the Kid:
+              Select Profile:
             </p>
-            {kids.map((k) => (
+            {(step === "select-kid" ? kids : users.filter(u => u.role === 'parent')).map((p) => (
               <button
-                key={k.id}
-                onClick={() => onComplete({ mode: "KID_SOLO", targetId: k.id })}
+                key={p.id}
+                onClick={() =>
+                  onComplete({
+                    mode: step === "select-kid" ? "KID_SOLO" : "PARENT_SOLO",
+                    targetId: p.id,
+                  })
+                }
                 className="w-full p-3 bg-white border rounded-xl flex items-center gap-3 hover:bg-gray-50 shadow-sm"
               >
-                <span className="text-2xl">{k.avatar}</span>
-                <span className="font-bold text-gray-700">{k.name}</span>
+                <span className="text-2xl">
+                  {p.avatar || (step === "select-kid" ? "🙂" : "🛡️")}
+                </span>
+                <span className="font-bold text-gray-700">{p.name}</span>
                 <ChevronRight className="ml-auto text-gray-300" />
               </button>
             ))}
-            {kids.length === 0 && (
-              <p className="text-sm text-red-400 text-center py-4">
-                No kids found in family account.
-              </p>
-            )}
             <Button
               variant="ghost"
               onClick={() => setStep("select-mode")}
@@ -1076,14 +1078,15 @@ export default function App() {
     processInvite();
   }, [authUser, pendingInviteId, knownFamilyIds]);
 
-  useEffect(() => {
+useEffect(() => {
     if (
       !loading &&
       authUser &&
-      kids.length > 0 &&
+      (kids.length > 0 || users.length > 0) && // Check if ANY data exists
       view === "login" &&
       !currentUser
     ) {
+      // 1. KID SOLO
       if (deviceConfig?.mode === "KID_SOLO" && deviceConfig?.targetId) {
         const kid = kids.find((k) => k.id === deviceConfig.targetId);
         if (kid) {
@@ -1092,6 +1095,18 @@ export default function App() {
           return;
         }
       }
+      
+      // 2. PARENT SOLO (New)
+      if (deviceConfig?.mode === "PARENT_SOLO" && deviceConfig?.targetId) {
+        const parent = users.find((u) => u.id === deviceConfig.targetId);
+        if (parent) {
+          setCurrentUser(parent);
+          setView("parent");
+          return;
+        }
+      }
+
+      // 3. SAVED USER IN FAMILY MODE (Optional convenience)
       const savedUserId = localStorage.getItem("chorePiggy_activeUser");
       if (savedUserId && deviceConfig?.mode === "FAMILY") {
         const kid = kids.find((k) => k.id === savedUserId);
@@ -1101,7 +1116,7 @@ export default function App() {
         }
       }
     }
-  }, [loading, authUser, kids, view, currentUser, deviceConfig]);
+  }, [loading, authUser, kids, users, view, currentUser, deviceConfig]);
 
 useEffect(() => {
     if (!authUser || !currentFamilyId) return;
@@ -1751,9 +1766,9 @@ useEffect(() => {
           inviteFamilyName={inviteInfo?.name}
         />
       )}
-      {authUser && !deviceConfig && users.length > 0 && (
-        <DeviceSetupWizard kids={kids} onComplete={updateDeviceConfig} />
-      )}
+{authUser && !deviceConfig && users.length > 0 && (
+  <DeviceSetupWizard kids={kids} users={users} onComplete={updateDeviceConfig} />
+)}
       {showPasswordRecovery && (
         <Modal
           isOpen={true}
@@ -2283,6 +2298,37 @@ function ParentView({
                   </div>
                   {deviceConfig?.mode === "FAMILY" && (
                     <CheckCircle size={18} className="text-indigo-600" />
+                  )}
+                </button>
+                <button
+                  onClick={() =>
+                    updateDeviceConfig({ mode: "PARENT_SOLO", targetId: user.id })
+                  }
+                  className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 group ${
+                    deviceConfig?.mode === "PARENT_SOLO"
+                      ? "border-blue-600 bg-white ring-2 ring-blue-100"
+                      : "border-gray-100 hover:border-blue-200 bg-white"
+                  }`}
+                >
+                  <div
+                    className={`p-2 rounded-full ${
+                      deviceConfig?.mode === "PARENT_SOLO"
+                        ? "bg-blue-100 text-blue-600"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-bold block text-sm text-gray-800">
+                      Only Me
+                    </span>
+                    <span className="text-[10px] text-gray-500">
+                      Auto-login as {user.name}.
+                    </span>
+                  </div>
+                  {deviceConfig?.mode === "PARENT_SOLO" && (
+                    <CheckCircle size={18} className="text-blue-600" />
                   )}
                 </button>
                 <button
