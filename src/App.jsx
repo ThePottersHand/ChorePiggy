@@ -942,7 +942,7 @@ export default function App() {
   const [showPinPad, setShowPinPad] = useState(false);
   const [pinTarget, setPinTarget] = useState(null);
   const [isPinSetup, setIsPinSetup] = useState(false);
-const [showDeviceAdmin, setShowDeviceAdmin] = useState(false);
+
   const [showInitModal, setShowInitModal] = useState(false);
   const [wizardMode, setWizardMode] = useState("create");
   const [showPasswordRecovery, setShowPasswordRecovery] = useState(false);
@@ -1411,20 +1411,23 @@ useEffect(() => {
     setPinTarget({ ...parent, isGateUnlock: true });
     setShowPinPad(true);
   };
-const handleGateSuccess = () => {
-  // Instead of an alert, we now open the Admin Menu
-  setShowPinPad(false);
-  setPinTarget(null);
-  setShowDeviceAdmin(true); 
-};
-  const onPinPadSuccess = (pin) => {
+
+const onPinPadSuccess = (pin) => {
     if (pinTarget.isGateUnlock) {
-      const matchingParent = users.find(
-        (u) => u.role === "parent" && u.pin === pin
-      );
-      if (matchingParent) handleGateSuccess();
-      else alert("Incorrect Parent PIN");
+      // 1. Find the parent who owns this PIN
+      const matchingParent = users.find((u) => u.role === "parent" && u.pin === pin);
+      
+      if (matchingParent) {
+        // 2. SUCCESS: Just log them in!
+        setShowPinPad(false);
+        setPinTarget(null);
+        setCurrentUser(matchingParent);
+        setView("parent"); 
+      } else {
+        alert("Incorrect Parent PIN");
+      }
     } else {
+      // Normal login flow (for kids or regular parent login)
       handlePinSuccess(pin);
     }
   };
@@ -1811,26 +1814,7 @@ const handleGateSuccess = () => {
       )}
       <InstallPrompt />
 {/* NEW DEVICE ADMIN MENU (Triggered by Parent PIN) */}
-      <Modal isOpen={showDeviceAdmin} onClose={() => setShowDeviceAdmin(false)} title="Device Settings">
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">Parent access granted. What would you like to do?</p>
-
-          <button onClick={() => { updateDeviceConfig({ mode: 'FAMILY', targetId: null }); handleLogout(); setShowDeviceAdmin(false); }} className="w-full p-4 border rounded-xl flex items-center gap-3 hover:bg-gray-50 text-left">
-            <div className="bg-indigo-100 p-2 rounded-full text-indigo-600"><RefreshCw size={20}/></div>
-            <div><span className="font-bold block text-gray-800">Reset Device Mode</span><span className="text-xs text-gray-500">Return to Family Login screen</span></div>
-          </button>
-
-          <button onClick={() => { handleLogout(); setShowDeviceAdmin(false); }} className="w-full p-4 border rounded-xl flex items-center gap-3 hover:bg-gray-50 text-left">
-            <div className="bg-blue-100 p-2 rounded-full text-blue-600"><Users size={20}/></div>
-            <div><span className="font-bold block text-gray-800">Switch Profile</span><span className="text-xs text-gray-500">Log out current user</span></div>
-          </button>
-
-          <button onClick={() => { handleFullSignOut(); setShowDeviceAdmin(false); }} className="w-full p-4 border border-red-100 bg-red-50 rounded-xl flex items-center gap-3 hover:bg-red-100 text-left">
-            <div className="bg-white p-2 rounded-full text-red-600"><LogOut size={20}/></div>
-            <div><span className="font-bold block text-red-800">Full Sign Out</span><span className="text-xs text-red-500">Disconnect from Family Account</span></div>
-          </button>
-        </div>
-      </Modal>
+  
       {view === "login" && (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
           {/* --- UPDATED HEADER SECTION --- */}
@@ -2259,6 +2243,33 @@ function ParentView({
           title="Family Settings"
         >
           <div className="space-y-6">
+            <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+            <h4 className="font-bold text-indigo-800 text-sm uppercase">This Device Mode</h4>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => updateDeviceConfig({ mode: "FAMILY", targetId: null })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "FAMILY" ? "border-indigo-600 bg-white ring-2 ring-indigo-100" : "border-gray-100 hover:border-indigo-200 bg-white"}`}>
+                <div className={`p-2 rounded-full ${deviceConfig?.mode === "FAMILY" ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-500"}`}><Monitor size={20} /></div>
+                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Family (Default)</span><span className="text-[10px] text-gray-500">Standard login screen.</span></div>
+                {deviceConfig?.mode === "FAMILY" && <CheckCircle size={18} className="text-indigo-600" />}
+              </button>
+
+              <button onClick={() => updateDeviceConfig({ mode: "PARENT_SOLO", targetId: user.id })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "PARENT_SOLO" ? "border-blue-600 bg-white ring-2 ring-blue-100" : "border-gray-100 hover:border-blue-200 bg-white"}`}>
+                <div className={`p-2 rounded-full ${deviceConfig?.mode === "PARENT_SOLO" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><ShieldCheck size={20} /></div>
+                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Only Me</span><span className="text-[10px] text-gray-500">Auto-login as {user.name}.</span></div>
+                {deviceConfig?.mode === "PARENT_SOLO" && <CheckCircle size={18} className="text-blue-600" />}
+              </button>
+
+              <div className="mt-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kid Solo Mode</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {data.kids.map((k) => (
+                    <button key={k.id} onClick={() => updateDeviceConfig({ mode: "KID_SOLO", targetId: k.id })} className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${deviceConfig?.mode === "KID_SOLO" && deviceConfig?.targetId === k.id ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-600 border-gray-200 hover:border-green-300"}`}>
+                      <span className="text-xl">{k.avatar}</span><span className="font-bold truncate">{k.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
             {/* Device Settings */}
             <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
               <h4 className="font-bold text-indigo-800 text-sm uppercase">
