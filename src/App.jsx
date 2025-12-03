@@ -1103,10 +1103,10 @@ export default function App() {
     }
   }, [loading, authUser, kids, view, currentUser, deviceConfig]);
 
-  useEffect(() => {
+useEffect(() => {
     if (!authUser || !currentFamilyId) return;
 
-    // Fetch Name
+    // 1. Fetch Family Name
     getDoc(doc(db, "families", currentFamilyId)).then((snap) => {
       if (snap.exists())
         setFamilyNames((prev) => ({
@@ -1116,14 +1116,17 @@ export default function App() {
     });
 
     const getSub = (name) => collection(db, "families", currentFamilyId, name);
+
+    // 2. Define Standard Collections (Small data, okay to read all)
     const COLLECTIONS = {
       users: getSub("users"),
       kids: getSub("kids"),
       chores: getSub("chores"),
-      task_log: getSub("task_log"),
       bonuses: getSub("bonuses"),
+      // Note: 'task_log' is removed from here to handle separately below
     };
 
+    // 3. Define Config Listener
     getDoc(doc(db, "families", currentFamilyId, "settings", "config")).then(
       (snap) => {
         if (snap.exists()) setInvitesEnabled(snap.data().invitesEnabled);
@@ -1131,6 +1134,7 @@ export default function App() {
       }
     );
 
+    // 4. Listen to Standard Collections
     const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
       return onSnapshot(
         ref,
@@ -1142,13 +1146,33 @@ export default function App() {
           if (key === "users") setUsers(data);
           if (key === "kids") setKids(data);
           if (key === "chores") setChores(data);
-          if (key === "task_log") setTaskLog(data);
           if (key === "bonuses") setBonuses(data);
         },
         (error) => console.log(`Error fetching ${key}:`, error)
       );
     });
 
+    // 5. OPTIMIZED TASK LOG LISTENER (Limit to last 150 items)
+    // This prevents hitting the Firestore 'Read' limit after months of usage
+    const taskLogQuery = query(
+      getSub("task_log"),
+      orderBy("timestamp", "desc"),
+      limit(150)
+    );
+
+    const taskLogUnsub = onSnapshot(
+      taskLogQuery,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTaskLog(data);
+      },
+      (error) => console.log("Error fetching task_log:", error)
+    );
+
+    // 6. History Listener (Already limited)
     const historyQuery = query(
       getSub("history"),
       orderBy("date", "desc"),
@@ -1157,13 +1181,17 @@ export default function App() {
     const historyUnsub = onSnapshot(
       historyQuery,
       (snapshot) => {
-        setHistory(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        setHistory(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
       },
       (error) => console.log("History Error", error)
     );
 
+    // Cleanup all listeners on unmount
     return () => {
       unsubscribers.forEach((unsub) => unsub());
+      taskLogUnsub();
       historyUnsub();
     };
   }, [authUser, currentFamilyId]);
