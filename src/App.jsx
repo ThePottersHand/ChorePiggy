@@ -4216,6 +4216,7 @@ const [showHelp, setShowHelp] = useState(false);
           </div>
         )}
       </main>
+      {showHelp && <UserGuideModal onClose={() => setShowHelp(false)} />}
     </div>
   );
 
