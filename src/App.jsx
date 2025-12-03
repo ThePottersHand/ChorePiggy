@@ -661,7 +661,10 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete }) => {
             <p className="text-xs font-bold text-gray-500 uppercase mb-2">
               Select Profile:
             </p>
-            {(step === "select-kid" ? kids : users.filter(u => u.role === 'parent')).map((p) => (
+            {(step === "select-kid"
+              ? kids
+              : users.filter((u) => u.role === "parent")
+            ).map((p) => (
               <button
                 key={p.id}
                 onClick={() =>
@@ -945,8 +948,8 @@ export default function App() {
   const [pinTarget, setPinTarget] = useState(null);
   const [isPinSetup, setIsPinSetup] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-const [showSettingsModal, setShowSettingsModal] = useState(false);
-const [settingsUser, setSettingsUser] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsUser, setSettingsUser] = useState(null);
   const [showInitModal, setShowInitModal] = useState(false);
   const [wizardMode, setWizardMode] = useState("create");
   const [showPasswordRecovery, setShowPasswordRecovery] = useState(false);
@@ -1082,7 +1085,7 @@ const [settingsUser, setSettingsUser] = useState(null);
     processInvite();
   }, [authUser, pendingInviteId, knownFamilyIds]);
 
-useEffect(() => {
+  useEffect(() => {
     if (
       !loading &&
       authUser &&
@@ -1099,7 +1102,7 @@ useEffect(() => {
           return;
         }
       }
-      
+
       // 2. PARENT SOLO (New)
       if (deviceConfig?.mode === "PARENT_SOLO" && deviceConfig?.targetId) {
         const parent = users.find((u) => u.id === deviceConfig.targetId);
@@ -1122,11 +1125,11 @@ useEffect(() => {
     }
   }, [loading, authUser, kids, users, view, currentUser, deviceConfig]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!authUser || !currentFamilyId) return;
 
     // 1. Reset loading state when family changes
-    setDataLoaded(false); 
+    setDataLoaded(false);
 
     // 1. Fetch Family Name
     getDoc(doc(db, "families", currentFamilyId)).then((snap) => {
@@ -1165,8 +1168,8 @@ useEffect(() => {
             ...doc.data(),
           }));
           if (key === "users") {
-             setUsers(data);
-             setDataLoaded(true); // <--- 2. Data is now ready!
+            setUsers(data);
+            setDataLoaded(true); // <--- 2. Data is now ready!
           }
           if (key === "kids") setKids(data);
           if (key === "chores") setChores(data);
@@ -1178,18 +1181,26 @@ useEffect(() => {
 
     // ... (Keep the rest of the existing taskLog/history listeners logic below exactly as it was) ...
     // Note: If you copy-pasted this whole block, make sure you keep the taskLogQuery and historyQuery parts below this.
-    
+
     // ... (Existing taskLog logic) ...
-    const taskLogQuery = query(getSub("task_log"), orderBy("timestamp", "desc"), limit(150));
+    const taskLogQuery = query(
+      getSub("task_log"),
+      orderBy("timestamp", "desc"),
+      limit(150)
+    );
     const taskLogUnsub = onSnapshot(taskLogQuery, (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setTaskLog(data);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setTaskLog(data);
     });
 
     // ... (Existing history logic) ...
-    const historyQuery = query(getSub("history"), orderBy("date", "desc"), limit(100));
+    const historyQuery = query(
+      getSub("history"),
+      orderBy("date", "desc"),
+      limit(100)
+    );
     const historyUnsub = onSnapshot(historyQuery, (snapshot) => {
-        setHistory(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setHistory(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
 
     return () => {
@@ -1400,24 +1411,26 @@ useEffect(() => {
     setShowPinPad(true);
   };
 
-const onPinPadSuccess = (pin) => {
-  if (pinTarget.isGateUnlock) {
-    const matchingParent = users.find((u) => u.role === "parent" && u.pin === pin);
-    if (matchingParent) {
-      setShowPinPad(false);
-      setPinTarget(null);
-      setSettingsUser(matchingParent); // Remember who unlocked it
-      setShowSettingsModal(true);      // Open the Global Settings
+  const onPinPadSuccess = (pin) => {
+    if (pinTarget.isGateUnlock) {
+      const matchingParent = users.find(
+        (u) => u.role === "parent" && u.pin === pin
+      );
+      if (matchingParent) {
+        setShowPinPad(false);
+        setPinTarget(null);
+        setSettingsUser(matchingParent); // Remember who unlocked it
+        setShowSettingsModal(true); // Open the Global Settings
+      } else {
+        alert("Incorrect Parent PIN");
+      }
     } else {
-      alert("Incorrect Parent PIN");
+      handlePinSuccess(pin);
     }
-  } else {
-    handlePinSuccess(pin);
-  }
-};
+  };
 
   // CRUD
-const logTransaction = async (
+  const logTransaction = async (
     kidId,
     amount,
     type,
@@ -1435,7 +1448,7 @@ const logTransaction = async (
       balance: newBalance, // <--- 2. Save it to the database
     });
   };
-const updateBalance = async (kidId, amount, type, description, actorName) => {
+  const updateBalance = async (kidId, amount, type, description, actorName) => {
     const safeAmount = Number(amount) || 0;
     const kid = kids.find((k) => k.id === kidId);
 
@@ -1450,7 +1463,14 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
       });
 
       // Pass the calculated newBalance to the log
-      await logTransaction(kidId, safeAmount, type, description, actorName, newBalance);
+      await logTransaction(
+        kidId,
+        safeAmount,
+        type,
+        description,
+        actorName,
+        newBalance
+      );
     }
   };
   const addParent = async (name, pin) => {
@@ -1490,7 +1510,7 @@ const updateBalance = async (kidId, amount, type, description, actorName) => {
       });
     }
   };
-const parentOverrideTask = async (
+  const parentOverrideTask = async (
     chore,
     kidId,
     dateString,
@@ -1507,7 +1527,7 @@ const parentOverrideTask = async (
     let docRef = existingLog
       ? getFamilyDoc("task_log", existingLog.id)
       : getFamilyDoc("task_log");
-      
+
     const baseData = {
       type: "chore",
       taskId: chore.id,
@@ -1522,7 +1542,7 @@ const parentOverrideTask = async (
       const stats = calculateWeeklyStats(kidId);
       const weight = chore.weight || 1;
       // Ensure valuePerPoint is a valid number, default to 0 if NaN
-      const valuePerPoint = Number(stats.valuePerPoint) || 0; 
+      const valuePerPoint = Number(stats.valuePerPoint) || 0;
       const value = weight * valuePerPoint;
 
       await setDoc(
@@ -1546,15 +1566,15 @@ const parentOverrideTask = async (
         );
       }
     } else if (action === "fail") {
-        // ... (rest of fail logic remains same)
-       await setDoc(
+      // ... (rest of fail logic remains same)
+      await setDoc(
         docRef,
         { ...baseData, status: "failed", rejectedAt: new Date().toISOString() },
         { merge: true }
       );
     } else if (action === "retry") {
-        // ... (rest of retry logic remains same)
-        await setDoc(
+      // ... (rest of retry logic remains same)
+      await setDoc(
         docRef,
         {
           ...baseData,
@@ -1719,7 +1739,7 @@ const parentOverrideTask = async (
     };
   };
 
-if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
+  if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-400 animate-pulse">
         Loading ChorePiggy...
@@ -1769,9 +1789,13 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
           inviteFamilyName={inviteInfo?.name}
         />
       )}
-{authUser && !deviceConfig && users.length > 0 && (
-  <DeviceSetupWizard kids={kids} users={users} onComplete={updateDeviceConfig} />
-)}
+      {authUser && !deviceConfig && users.length > 0 && (
+        <DeviceSetupWizard
+          kids={kids}
+          users={users}
+          onComplete={updateDeviceConfig}
+        />
+      )}
       {showPasswordRecovery && (
         <Modal
           isOpen={true}
@@ -1819,20 +1843,29 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
       )}
       <InstallPrompt />
       {/* --- GLOBAL FAMILY SETTINGS MODAL --- */}
-<Modal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} title="Family Settings">
+      <Modal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        title="Family Settings"
+      >
         <div className="space-y-6">
-
           {/* 1. NEW: MY PROFILE SECTION */}
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 animate-in fade-in slide-in-from-top-2">
-            <h4 className="font-bold text-blue-800 text-sm uppercase mb-3">My Profile</h4>
+            <h4 className="font-bold text-blue-800 text-sm uppercase mb-3">
+              My Profile
+            </h4>
             <div className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-blue-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow-inner">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <span className="font-bold text-gray-800 block">{settingsUser?.name || "Parent"}</span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400">Admin Access</span>
+                  <span className="font-bold text-gray-800 block">
+                    {settingsUser?.name || "Parent"}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                    Admin Access
+                  </span>
                 </div>
               </div>
               <Button
@@ -1853,26 +1886,97 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
 
           {/* 2. DEVICE MODE SETTINGS */}
           <div className="space-y-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-            <h4 className="font-bold text-indigo-800 text-sm uppercase">This Device Mode</h4>
+            <h4 className="font-bold text-indigo-800 text-sm uppercase">
+              This Device Mode
+            </h4>
             <div className="flex flex-col gap-2">
-              <button onClick={() => updateDeviceConfig({ mode: "FAMILY", targetId: null })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "FAMILY" ? "border-indigo-600 bg-white ring-2 ring-indigo-100" : "border-gray-100 hover:border-indigo-200 bg-white"}`}>
-                <div className={`p-2 rounded-full ${deviceConfig?.mode === "FAMILY" ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-500"}`}><Monitor size={20} /></div>
-                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Family (Default)</span><span className="text-[10px] text-gray-500">Standard login screen.</span></div>
-                {deviceConfig?.mode === "FAMILY" && <CheckCircle size={18} className="text-indigo-600" />}
+              <button
+                onClick={() =>
+                  updateDeviceConfig({ mode: "FAMILY", targetId: null })
+                }
+                className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${
+                  deviceConfig?.mode === "FAMILY"
+                    ? "border-indigo-600 bg-white ring-2 ring-indigo-100"
+                    : "border-gray-100 hover:border-indigo-200 bg-white"
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-full ${
+                    deviceConfig?.mode === "FAMILY"
+                      ? "bg-indigo-100 text-indigo-600"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  <Monitor size={20} />
+                </div>
+                <div className="flex-1">
+                  <span className="font-bold block text-sm text-gray-800">
+                    Family (Default)
+                  </span>
+                  <span className="text-[10px] text-gray-500">
+                    Standard login screen.
+                  </span>
+                </div>
+                {deviceConfig?.mode === "FAMILY" && (
+                  <CheckCircle size={18} className="text-indigo-600" />
+                )}
               </button>
 
-              <button onClick={() => updateDeviceConfig({ mode: "PARENT_SOLO", targetId: settingsUser?.id })} className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${deviceConfig?.mode === "PARENT_SOLO" ? "border-blue-600 bg-white ring-2 ring-blue-100" : "border-gray-100 hover:border-blue-200 bg-white"}`}>
-                <div className={`p-2 rounded-full ${deviceConfig?.mode === "PARENT_SOLO" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><ShieldCheck size={20} /></div>
-                <div className="flex-1"><span className="font-bold block text-sm text-gray-800">Only Me</span><span className="text-[10px] text-gray-500">Auto-login as {settingsUser?.name || 'Parent'}.</span></div>
-                {deviceConfig?.mode === "PARENT_SOLO" && <CheckCircle size={18} className="text-blue-600" />}
+              <button
+                onClick={() =>
+                  updateDeviceConfig({
+                    mode: "PARENT_SOLO",
+                    targetId: settingsUser?.id,
+                  })
+                }
+                className={`p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 ${
+                  deviceConfig?.mode === "PARENT_SOLO"
+                    ? "border-blue-600 bg-white ring-2 ring-blue-100"
+                    : "border-gray-100 hover:border-blue-200 bg-white"
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-full ${
+                    deviceConfig?.mode === "PARENT_SOLO"
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  <ShieldCheck size={20} />
+                </div>
+                <div className="flex-1">
+                  <span className="font-bold block text-sm text-gray-800">
+                    Only Me
+                  </span>
+                  <span className="text-[10px] text-gray-500">
+                    Auto-login as {settingsUser?.name || "Parent"}.
+                  </span>
+                </div>
+                {deviceConfig?.mode === "PARENT_SOLO" && (
+                  <CheckCircle size={18} className="text-blue-600" />
+                )}
               </button>
 
               <div className="mt-2">
-                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kid Solo Mode</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">
+                  Kid Solo Mode
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   {kids.map((k) => (
-                    <button key={k.id} onClick={() => updateDeviceConfig({ mode: "KID_SOLO", targetId: k.id })} className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${deviceConfig?.mode === "KID_SOLO" && deviceConfig?.targetId === k.id ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-600 border-gray-200 hover:border-green-300"}`}>
-                      <span className="text-xl">{k.avatar}</span><span className="font-bold truncate">{k.name}</span>
+                    <button
+                      key={k.id}
+                      onClick={() =>
+                        updateDeviceConfig({ mode: "KID_SOLO", targetId: k.id })
+                      }
+                      className={`p-2 text-left text-xs rounded border flex items-center gap-2 ${
+                        deviceConfig?.mode === "KID_SOLO" &&
+                        deviceConfig?.targetId === k.id
+                          ? "bg-green-600 text-white border-green-600"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-green-300"
+                      }`}
+                    >
+                      <span className="text-xl">{k.avatar}</span>
+                      <span className="font-bold truncate">{k.name}</span>
                     </button>
                   ))}
                 </div>
@@ -1882,52 +1986,106 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
 
           {/* 3. FAMILY ACCESS (INVITES) */}
           <div className="space-y-4 pt-4 border-t border-gray-100">
-             <h4 className="font-bold text-gray-700 text-sm uppercase">Family Access</h4>
-             <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-sm text-gray-600 space-y-3">
-                <div className="flex justify-between items-center gap-2">
-                   <div className="flex items-center gap-2"><LinkIcon size={16} className="text-yellow-600"/><span className="text-xs font-semibold text-yellow-800">Invite Link</span></div>
-                   <button onClick={safeCopyLink} className="px-3 py-1 bg-white border border-yellow-200 rounded text-xs font-bold text-yellow-700 hover:bg-yellow-100" disabled={invitesEnabled === false}><Copy size={14}/></button>
+            <h4 className="font-bold text-gray-700 text-sm uppercase">
+              Family Access
+            </h4>
+            <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-sm text-gray-600 space-y-3">
+              <div className="flex justify-between items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <LinkIcon size={16} className="text-yellow-600" />
+                  <span className="text-xs font-semibold text-yellow-800">
+                    Invite Link
+                  </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-yellow-200">
-                   <span className="text-xs font-bold text-yellow-800">Allow Invites</span>
-                   <button onClick={toggleInvites} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${invitesEnabled ? 'bg-green-500' : 'bg-gray-300'}`}><span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${invitesEnabled ? 'translate-x-6' : 'translate-x-1'}`}/></button>
-                </div>
-             </div>
-             {/* List other parents */}
-             <div className="space-y-2">
-                {users.filter(u => u.role === 'parent' && u.id !== settingsUser?.id).map(p => (
-                  <div key={p.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                <button
+                  onClick={safeCopyLink}
+                  className="px-3 py-1 bg-white border border-yellow-200 rounded text-xs font-bold text-yellow-700 hover:bg-yellow-100"
+                  disabled={invitesEnabled === false}
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-yellow-200">
+                <span className="text-xs font-bold text-yellow-800">
+                  Allow Invites
+                </span>
+                <button
+                  onClick={toggleInvites}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    invitesEnabled ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      invitesEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+            {/* List other parents */}
+            <div className="space-y-2">
+              {users
+                .filter((u) => u.role === "parent" && u.id !== settingsUser?.id)
+                .map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex justify-between items-center bg-gray-50 p-2 rounded"
+                  >
                     <span className="font-bold text-gray-700">{p.name}</span>
-                    <button onClick={() => deleteParent(p.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                    <button
+                      onClick={() => deleteParent(p.id)}
+                      className="text-red-400 hover:text-red-600"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 ))}
-             </div>
+            </div>
           </div>
 
           {/* 4. FULL LOGOUT */}
           <div className="pt-4 border-t border-gray-100">
-            <button onClick={() => { handleFullSignOut(); setShowSettingsModal(false); }} className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100">
-              <LogOut size={18}/> Full Sign Out
+            <button
+              onClick={() => {
+                handleFullSignOut();
+                setShowSettingsModal(false);
+              }}
+              className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100"
+            >
+              <LogOut size={18} /> Full Sign Out
             </button>
-            <p className="text-[10px] text-center text-red-300 mt-2">Disconnects device from family account.</p>
+            <p className="text-[10px] text-center text-red-300 mt-2">
+              Disconnects device from family account.
+            </p>
           </div>
 
           {/* SAVE BUTTON */}
-<div className="pt-2">
+          <div className="pt-2">
             <Button
               className="w-full"
               onClick={() => {
                 setShowSettingsModal(false);
 
                 // --- NEW LOGIC: Immediate View Switch ---
-                if (deviceConfig?.mode === "PARENT_SOLO" && deviceConfig.targetId) {
-                  const target = users.find((u) => u.id === deviceConfig.targetId);
+                if (
+                  deviceConfig?.mode === "PARENT_SOLO" &&
+                  deviceConfig.targetId
+                ) {
+                  const target = users.find(
+                    (u) => u.id === deviceConfig.targetId
+                  );
                   if (target) {
                     setCurrentUser(target);
                     setView("parent");
                   }
-                } else if (deviceConfig?.mode === "KID_SOLO" && deviceConfig.targetId) {
-                  const target = kids.find((k) => k.id === deviceConfig.targetId);
+                } else if (
+                  deviceConfig?.mode === "KID_SOLO" &&
+                  deviceConfig.targetId
+                ) {
+                  const target = kids.find(
+                    (k) => k.id === deviceConfig.targetId
+                  );
                   if (target) {
                     setCurrentUser(target);
                     setView("kid");
@@ -1944,14 +2102,16 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
           </div>
         </div>
       </Modal>
-{/* NEW DEVICE ADMIN MENU (Triggered by Parent PIN) */}
-  
+      {/* NEW DEVICE ADMIN MENU (Triggered by Parent PIN) */}
+
       {view === "login" && (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
           {/* --- UPDATED HEADER SECTION --- */}
-<div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4">
             <button
-              onClick={() => { if (users.length > 0) handleParentGate(); }}
+              onClick={() => {
+                if (users.length > 0) handleParentGate();
+              }}
               className="flex items-center gap-2 text-gray-400 hover:text-blue-500 text-xs font-bold"
             >
               <Settings size={14} /> Device
@@ -2096,10 +2256,10 @@ if (loading || (authUser && !dataLoaded && knownFamilyIds.length > 0)) {
           invitesEnabled={invitesEnabled}
           toggleInvites={toggleInvites}
           familyNames={familyNames}
-          onOpenSettings={() => { 
-       setSettingsUser(currentUser); 
-       setShowSettingsModal(true); 
-    }}
+          onOpenSettings={() => {
+            setSettingsUser(currentUser);
+            setShowSettingsModal(true);
+          }}
         />
       )}
       {view === "kid" && (
@@ -2189,7 +2349,6 @@ function ParentView({
   const [newParentName, setNewParentName] = useState("");
   const [newParentPin2, setNewParentPin2] = useState("");
   const [showHelp, setShowHelp] = useState(false);
-  
 
   // Ensure kids data is available before running effect
   useEffect(() => {
@@ -2224,7 +2383,7 @@ function ParentView({
     setTransactionAmount("");
     setTransactionDesc("");
   };
-const approveAll = async () => {
+  const approveAll = async () => {
     if (isProcessing) return; // Prevent double clicks
     if (confirm(`Approve all ${pendingCount} tasks?`)) {
       setIsProcessing(true); // Lock
@@ -2232,15 +2391,15 @@ const approveAll = async () => {
         for (const task of pendingTasks) {
           let val = 0;
           if (task.type === "chore") {
-             // ... (existing calculation logic) ...
-             // ... make sure you use the FIXED logic from our previous step here ...
-             const stats = calculateWeeklyStats(task.kidId);
-             const choreDef = data.chores.find((c) => c.id === task.taskId);
-             const weight = choreDef?.weight || 1;
-             const valuePerPoint = Number(stats.valuePerPoint) || 0;
-             val = weight * valuePerPoint;
+            // ... (existing calculation logic) ...
+            // ... make sure you use the FIXED logic from our previous step here ...
+            const stats = calculateWeeklyStats(task.kidId);
+            const choreDef = data.chores.find((c) => c.id === task.taskId);
+            const weight = choreDef?.weight || 1;
+            const valuePerPoint = Number(stats.valuePerPoint) || 0;
+            val = weight * valuePerPoint;
           } else if (task.type === "bonus") {
-             val = Number(task.reward) || 0;
+            val = Number(task.reward) || 0;
           }
           await approveTask(task, val, user.name);
         }
@@ -2249,13 +2408,31 @@ const approveAll = async () => {
       }
     }
   };
-  const handleBonusApproval = (task) => {
+const handleBonusApproval = (task) => {
+    // 1. Handle Group Tasks (Bonuses that need splitting)
     if (task.isGroupTask) {
       setSplitAmount(Math.floor(task.reward / 2));
       setSplitRewardTask(task);
-    } else {
-      approveTask(task, task.reward, user.name);
+      return;
     }
+
+    // 2. Calculate Value based on Type
+    let payout = 0;
+
+    if (task.type === "chore") {
+      // It's a Chore: Calculate dynamic value (Weight * ValuePerPoint)
+      const stats = calculateWeeklyStats(task.kidId);
+      const choreDef = data.chores.find((c) => c.id === task.taskId);
+      const weight = choreDef?.weight || 1;
+      const valuePerPoint = Number(stats.valuePerPoint) || 0;
+      payout = weight * valuePerPoint;
+    } else {
+      // It's a Bonus: Use the fixed reward attached to the task
+      payout = Number(task.reward) || 0;
+    }
+
+    // 3. Pay the user
+    approveTask(task, payout, user.name);
   };
   const handleAddKid = (e) => {
     e.preventDefault();
@@ -2352,36 +2529,36 @@ const approveAll = async () => {
           <div className="flex items-center gap-2 text-blue-800 font-bold text-xl">
             <ShieldCheck /> {user.name}'s Dashboard
           </div>
-<div className="flex gap-2">
-  {/* 1. HELP BUTTON */}
-  <button
-    onClick={() => setShowHelp(true)}
-    className="text-gray-400 hover:text-blue-600 transition-colors p-1"
-    title="User Guide"
-  >
-    <HelpCircle size={20} />
-  </button>
+          <div className="flex gap-2">
+            {/* 1. HELP BUTTON */}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+              title="User Guide"
+            >
+              <HelpCircle size={20} />
+            </button>
 
-  {/* 2. SETTINGS BUTTON */}
-  <button
-    onClick={onOpenSettings}
-    className="text-gray-500 hover:text-blue-600 p-1"
-    title="Settings"
-  >
-    <Settings size={20} />
-  </button>
+            {/* 2. SETTINGS BUTTON */}
+            <button
+              onClick={onOpenSettings}
+              className="text-gray-500 hover:text-blue-600 p-1"
+              title="Settings"
+            >
+              <Settings size={20} />
+            </button>
 
-  {/* 3. SWITCH USER BUTTON (Only show if NOT in Parent Solo mode) */}
-  {deviceConfig?.mode !== "PARENT_SOLO" && (
-    <button
-      onClick={logout}
-      className="text-red-400 hover:text-red-600 transition-colors p-1"
-      title="Switch User / Logout"
-    >
-      <LogOut size={20} />
-    </button>
-  )}
-</div>
+            {/* 3. SWITCH USER BUTTON (Only show if NOT in Parent Solo mode) */}
+            {deviceConfig?.mode !== "PARENT_SOLO" && (
+              <button
+                onClick={logout}
+                className="text-red-400 hover:text-red-600 transition-colors p-1"
+                title="Switch User / Logout"
+              >
+                <LogOut size={20} />
+              </button>
+            )}
+          </div>
         </div>
       </header>
       <main className="max-w-4xl mx-auto p-4 space-y-6">
@@ -2407,7 +2584,6 @@ const approveAll = async () => {
         </div>
 
         {/* SETTINGS MODAL */}
-
 
         {/* Reuse all other sections (Approvals, Kids, Chores, Bonuses, History, Modals) */}
         <Modal
@@ -2474,48 +2650,48 @@ const approveAll = async () => {
             <div className="space-y-2">
               {data.history.map((h) => {
                 const kid = data.kids.find((k) => k.id === h.kidId);
-return (
-                <div
-                  key={h.id}
-                  className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center text-sm"
-                >
-                  <div>
-                    <div className="font-bold text-gray-700 flex items-center gap-2">
-                      {kid && (
-                        <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">
-                          {kid.name}
+                return (
+                  <div
+                    key={h.id}
+                    className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center text-sm"
+                  >
+                    <div>
+                      <div className="font-bold text-gray-700 flex items-center gap-2">
+                        {kid && (
+                          <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full">
+                            {kid.name}
+                          </span>
+                        )}
+                        <span>{h.description}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                        <span>{new Date(h.date).toLocaleString()}</span>
+                        <span>•</span>
+                        <span className="font-medium text-blue-500">
+                          by {h.by || "System"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {h.amount !== 0 && (
+                        <span
+                          className={`font-bold block ${
+                            h.amount > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {h.amount > 0 ? "+" : ""}
+                          {formatCurrency(h.amount)}
                         </span>
                       )}
-                      <span>{h.description}</span>
-                    </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                      <span>{new Date(h.date).toLocaleString()}</span>
-                      <span>•</span>
-                      <span className="font-medium text-blue-500">
-                        by {h.by || "System"}
-                      </span>
+                      {/* NEW: Display Running Balance if it exists */}
+                      {h.balance !== undefined && (
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          Bal: {formatCurrency(h.balance)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    {h.amount !== 0 && (
-                      <span
-                        className={`font-bold block ${
-                          h.amount > 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {h.amount > 0 ? "+" : ""}
-                        {formatCurrency(h.amount)}
-                      </span>
-                    )}
-                    {/* NEW: Display Running Balance if it exists */}
-                    {h.balance !== undefined && (
-                       <span className="text-[10px] text-gray-400 font-mono">
-                         Bal: {formatCurrency(h.balance)}
-                       </span>
-                    )}
-                  </div>
-                </div>
-              );
+                );
               })}
             </div>
           </div>
@@ -2890,36 +3066,38 @@ return (
               <h4 className="text-xs font-bold text-gray-400 mb-2">
                 RECENT HISTORY
               </h4>
-<div className="space-y-2 max-h-40 overflow-y-auto">
-  {data.history
-    .filter((h) => h.kidId === selectedKid?.id)
-    .slice(0, 5)
-    .map((h) => {
-        // SAFE GUARD: Ensure amount is a number for display
-        const displayAmount = Number(h.amount) || 0; 
-        
-        return (
-            <div key={h.id} className="flex justify-between text-sm">
-              <span className="text-gray-600 truncate max-w-[180px]">
-                {h.description}
-              </span>
-              <div className="text-right">
-                <span
-                  className={`font-bold block ${
-                    displayAmount > 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {displayAmount > 0 ? "+" : ""}
-                  {formatCurrency(displayAmount)}
-                </span>
-                <span className="text-[10px] text-gray-400">
-                  {h.by}
-                </span>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {data.history
+                  .filter((h) => h.kidId === selectedKid?.id)
+                  .slice(0, 5)
+                  .map((h) => {
+                    // SAFE GUARD: Ensure amount is a number for display
+                    const displayAmount = Number(h.amount) || 0;
+
+                    return (
+                      <div key={h.id} className="flex justify-between text-sm">
+                        <span className="text-gray-600 truncate max-w-[180px]">
+                          {h.description}
+                        </span>
+                        <div className="text-right">
+                          <span
+                            className={`font-bold block ${
+                              displayAmount > 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {displayAmount > 0 ? "+" : ""}
+                            {formatCurrency(displayAmount)}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {h.by}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
-            </div>
-        );
-    })}
-</div>
             </div>
           </div>
         </Modal>
@@ -2948,15 +3126,15 @@ return (
             </div>
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
               {getWeekDays(managerWeekOffset).map((dayISO) => {
- const dayChores = data.chores.filter((c) => {
+                const dayChores = data.chores.filter((c) => {
                   const createdDate = c.createdAt || "1970-01-01";
                   if (c.kidId !== managingTasksKid?.id) return false;
                   if (createdDate > dayISO) return false;
 
                   if (c.type === "one_off") {
-                     return c.date === dayISO;
+                    return c.date === dayISO;
                   } else {
-                     return c.days.includes(new Date(dayISO).getDay());
+                    return c.days.includes(new Date(dayISO).getDay());
                   }
                 });
                 if (dayChores.length === 0) return null;
@@ -3075,14 +3253,16 @@ return (
               <h2 className="text-lg font-bold text-gray-700">
                 Waiting for Approval
               </h2>
-{pendingCount > 0 && (
-                <Button 
-                  size="sm" 
-                  variant="success" 
+              {pendingCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="success"
                   onClick={approveAll}
                   disabled={isProcessing} // <--- Disable visual
                 >
-                  {isProcessing ? "Processing..." : `Approve All (${pendingCount})`}
+                  {isProcessing
+                    ? "Processing..."
+                    : `Approve All (${pendingCount})`}
                 </Button>
               )}
             </div>
@@ -3376,27 +3556,73 @@ return (
                     />
                   </div>
                 </div>
-  <div>
-          <label className="block text-sm text-gray-500 mb-2">Frequency</label>
-          <div className="flex bg-gray-100 p-1 rounded-lg mb-3">
-             <button type="button" onClick={()=>setChoreType('recurring')} className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${choreType==='recurring'?'bg-white shadow text-blue-600':'text-gray-500 hover:text-gray-700'}`}>Repeat Weekly</button>
-             <button type="button" onClick={()=>setChoreType('one_off')} className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${choreType==='one_off'?'bg-white shadow text-blue-600':'text-gray-500 hover:text-gray-700'}`}>One Time</button>
-          </div>
+                <div>
+                  <label className="block text-sm text-gray-500 mb-2">
+                    Frequency
+                  </label>
+                  <div className="flex bg-gray-100 p-1 rounded-lg mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setChoreType("recurring")}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${
+                        choreType === "recurring"
+                          ? "bg-white shadow text-blue-600"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Repeat Weekly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setChoreType("one_off")}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${
+                        choreType === "one_off"
+                          ? "bg-white shadow text-blue-600"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      One Time
+                    </button>
+                  </div>
 
-          {choreType === 'recurring' ? (
-             <div className="flex justify-between gap-1">
-               {['S','M','T','W','T','F','S'].map((day, i) => (
-                 <button type="button" key={i} onClick={() => toggleDay(i)} className={`w-10 h-10 rounded-full font-bold text-sm transition-colors ${choreDays.includes(i) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>{day}</button>
-               ))}
-             </div>
-          ) : (
-             <input type="date" required={choreType === 'one_off'} className="w-full border p-2 rounded-lg font-bold text-gray-700" min={new Date().toISOString().split('T')[0]} value={oneOffDate} onChange={e=>setOneOffDate(e.target.value)} />
-          )}
-        </div>
+                  {choreType === "recurring" ? (
+                    <div className="flex justify-between gap-1">
+                      {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
+                        <button
+                          type="button"
+                          key={i}
+                          onClick={() => toggleDay(i)}
+                          className={`w-10 h-10 rounded-full font-bold text-sm transition-colors ${
+                            choreDays.includes(i)
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <input
+                      type="date"
+                      required={choreType === "one_off"}
+                      className="w-full border p-2 rounded-lg font-bold text-gray-700"
+                      min={new Date().toISOString().split("T")[0]}
+                      value={oneOffDate}
+                      onChange={(e) => setOneOffDate(e.target.value)}
+                    />
+                  )}
+                </div>
 
-        <Button type="submit" className="w-full" disabled={data.kids.length === 0}>
-            {choreType === 'one_off' ? 'Schedule One-Time Task' : 'Create Schedule'}
-        </Button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={data.kids.length === 0}
+                >
+                  {choreType === "one_off"
+                    ? "Schedule One-Time Task"
+                    : "Create Schedule"}
+                </Button>
               </form>
             </Card>
             <div className="space-y-2">
@@ -3432,12 +3658,13 @@ return (
                         <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">
                           {assignedKid?.name || "Unknown"}
                         </span>
-                       <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-   {chore.type === 'one_off' 
-      ? `One-off: ${formatDayDisplay(chore.date)}` 
-      : (chore.days.length === 7 ? 'Everyday' : `${chore.days.length} days/wk`)
-   }
-</span>
+                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+                          {chore.type === "one_off"
+                            ? `One-off: ${formatDayDisplay(chore.date)}`
+                            : chore.days.length === 7
+                            ? "Everyday"
+                            : `${chore.days.length} days/wk`}
+                        </span>
                       </div>
                       {(chore.startTime || chore.doByTime) && (
                         <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
@@ -3594,7 +3821,7 @@ function KidView({
   const [goalAmount, setGoalAmount] = useState(user.savingsGoal || 0);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-const [showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
@@ -3651,37 +3878,36 @@ const [showHelp, setShowHelp] = useState(false);
           {data.history
             .filter((h) => h.kidId === user.id)
             .map((h) => (
- <div
-              key={h.id}
-              className="bg-gray-50 p-3 rounded-lg flex justify-between items-center"
-            >
-              <div>
-                <div className="font-bold text-gray-700 text-sm">
-                  {h.description}
-                </div>
-                <div className="text-xs text-gray-400">
-                  {new Date(h.date).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="text-right">
-                <div
-                  className={`font-bold ${
-                    h.amount > 0 ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {h.amount > 0 ? "+" : ""}
-                  {formatCurrency(h.amount)}
-                </div>
-                
-                {/* NEW: This shows the running balance if available */}
-                {h.balance !== undefined && (
-                  <div className="text-[10px] text-gray-500 font-medium">
-                     = {formatCurrency(h.balance)}
+              <div
+                key={h.id}
+                className="bg-gray-50 p-3 rounded-lg flex justify-between items-center"
+              >
+                <div>
+                  <div className="font-bold text-gray-700 text-sm">
+                    {h.description}
                   </div>
-                )}
-                
+                  <div className="text-xs text-gray-400">
+                    {new Date(h.date).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div
+                    className={`font-bold ${
+                      h.amount > 0 ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {h.amount > 0 ? "+" : ""}
+                    {formatCurrency(h.amount)}
+                  </div>
+
+                  {/* NEW: This shows the running balance if available */}
+                  {h.balance !== undefined && (
+                    <div className="text-[10px] text-gray-500 font-medium">
+                      = {formatCurrency(h.balance)}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             ))}
           {data.history.filter((h) => h.kidId === user.id).length === 0 && (
             <p className="text-center text-gray-400">No transactions yet.</p>
@@ -3712,19 +3938,19 @@ const [showHelp, setShowHelp] = useState(false);
           </div>
 
           {/* RIGHT SIDE BUTTONS (Device Settings & Logout) */}
-<div className="flex gap-2">
-  {/* 1. NEW HELP BUTTON */}
-  <button
-    onClick={() => setShowHelp(true)}
-    className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
-    title="User Guide"
-  >
-    <HelpCircle size={18} />
-  </button>
+          <div className="flex gap-2">
+            {/* 1. NEW HELP BUTTON */}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
+              title="User Guide"
+            >
+              <HelpCircle size={18} />
+            </button>
 
-  {/* 2. Parent Settings (Existing) */}
-  <button
-    onClick={handleParentGate}
+            {/* 2. Parent Settings (Existing) */}
+            <button
+              onClick={handleParentGate}
               className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
               title="Parent Settings"
             >
@@ -3745,7 +3971,7 @@ const [showHelp, setShowHelp] = useState(false);
         </div>
 
         {/* PROGRESS BAR CARD */}
-      <div className="relative z-10 mb-4 bg-indigo-800/30 p-4 rounded-xl border border-indigo-500/30">
+        <div className="relative z-10 mb-4 bg-indigo-800/30 p-4 rounded-xl border border-indigo-500/30">
           <div className="flex justify-between items-center mb-2">
             {/* LEFT ARROW (Go Back) */}
             <button
@@ -3787,7 +4013,7 @@ const [showHelp, setShowHelp] = useState(false);
             <span>Earned: {formatCurrency(stats.earned)}</span>
             <span>Weekly Cap: {formatCurrency(stats.potential)}</span>
           </div>
-          
+
           <div className="h-4 bg-indigo-900 rounded-full overflow-hidden flex w-full">
             <div
               className="h-full bg-green-400 transition-all duration-500"
@@ -3798,7 +4024,7 @@ const [showHelp, setShowHelp] = useState(false);
               style={{ width: `${percentagePending}%` }}
             ></div>
           </div>
-          
+
           {percentagePending > 0 && (
             <div className="text-[10px] text-right mt-1 text-amber-200 font-medium">
               ({formatCurrency(stats.pending)} waiting approval)
@@ -4277,80 +4503,153 @@ const [showHelp, setShowHelp] = useState(false);
       {showHelp && <UserGuideModal onClose={() => setShowHelp(false)} />}
     </div>
   );
-
 }
-  const UserGuideModal = ({ onClose }) => (
+const UserGuideModal = ({ onClose }) => (
   <Modal isOpen={true} onClose={onClose} title="ChorePiggy User Guide">
     <div className="space-y-6 text-sm text-gray-700 leading-relaxed pb-4">
       <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-900">
-        <strong>ChorePiggy</strong> is a smart family allowance tracker that teaches financial literacy. 
-        Unlike simple chore charts, it calculates the value of chores dynamically based on a weekly allowance cap.
+        <strong>ChorePiggy</strong> is a smart family allowance tracker that
+        teaches financial literacy. Unlike simple chore charts, it calculates
+        the value of chores dynamically based on a weekly allowance cap.
       </div>
 
       <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🚀 Getting Started</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          🚀 Getting Started
+        </h3>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Create a Family Account:</strong> One parent creates the main account using an email and password.</li>
-          <li><strong>Setup Wizard:</strong> You will be prompted to enter your Family Name and create the first Parent Profile (with a 4-digit PIN).</li>
-          <li><strong>Add Kids:</strong> Create profiles for your children. You’ll set their Name, PIN, and Weekly Allowance Cap (e.g., $10/week).</li>
+          <li>
+            <strong>Create a Family Account:</strong> One parent creates the
+            main account using an email and password.
+          </li>
+          <li>
+            <strong>Setup Wizard:</strong> You will be prompted to enter your
+            Family Name and create the first Parent Profile (with a 4-digit
+            PIN).
+          </li>
+          <li>
+            <strong>Add Kids:</strong> Create profiles for your children. You’ll
+            set their Name, PIN, and Weekly Allowance Cap (e.g., $10/week).
+          </li>
         </ul>
       </section>
 
       <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">📱 Connect Other Devices</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          📱 Connect Other Devices
+        </h3>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Invite Link:</strong> In the Parent Dashboard, go to <strong>Settings</strong> to copy the Family Invite Link. Send this to the other parent or kids' devices.</li>
-          <li><strong>App Install:</strong> On mobile devices, tap "Share" (iOS) or the Menu (Android) and select <strong>"Add to Home Screen"</strong> for a full-screen app.</li>
+          <li>
+            <strong>Invite Link:</strong> In the Parent Dashboard, go to{" "}
+            <strong>Settings</strong> to copy the Family Invite Link. Send this
+            to the other parent or kids' devices.
+          </li>
+          <li>
+            <strong>App Install:</strong> On mobile devices, tap "Share" (iOS)
+            or the Menu (Android) and select{" "}
+            <strong>"Add to Home Screen"</strong> for a full-screen app.
+          </li>
         </ul>
       </section>
 
       <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">⚙️ Device Modes</h3>
-        <p className="mb-2 text-xs text-gray-500">Configure these in Settings (Requires Parent PIN):</p>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          ⚙️ Device Modes
+        </h3>
+        <p className="mb-2 text-xs text-gray-500">
+          Configure these in Settings (Requires Parent PIN):
+        </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>🖥️ Family Mode (Default):</strong> Best for a shared kitchen tablet. Shows list of all members. Login via PIN.</li>
-          <li><strong>🛡️ Parent Solo:</strong> Best for parent's personal phone. Auto-logs into Parent Dashboard.</li>
-          <li><strong>🙂 Kid Solo:</strong> Best for child's personal device. Auto-logs into that child's dashboard.</li>
+          <li>
+            <strong>🖥️ Family Mode (Default):</strong> Best for a shared kitchen
+            tablet. Shows list of all members. Login via PIN.
+          </li>
+          <li>
+            <strong>🛡️ Parent Solo:</strong> Best for parent's personal phone.
+            Auto-logs into Parent Dashboard.
+          </li>
+          <li>
+            <strong>🙂 Kid Solo:</strong> Best for child's personal device.
+            Auto-logs into that child's dashboard.
+          </li>
         </ul>
       </section>
 
       <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🛡️ For Parents</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          🛡️ For Parents
+        </h3>
         <div className="space-y-3">
           <div>
-            <strong className="block text-gray-900">The "Smart Allowance" System</strong>
-            <p>We use a <strong>Weight System</strong>. You set a Weekly Cap (e.g., $20) and assign chores weights (1x, 2x, 3x difficulty). The app calculates the value automatically. If a kid does 100% of tasks, they get 100% of the cap. If they skip tasks, they earn less. You never overpay!</p>
+            <strong className="block text-gray-900">
+              The "Smart Allowance" System
+            </strong>
+            <p>
+              We use a <strong>Weight System</strong>. You set a Weekly Cap
+              (e.g., $20) and assign chores weights (1x, 2x, 3x difficulty). The
+              app calculates the value automatically. If a kid does 100% of
+              tasks, they get 100% of the cap. If they skip tasks, they earn
+              less. You never overpay!
+            </p>
           </div>
           <div>
             <strong className="block text-gray-900">Managing Chores</strong>
-            <p>Go to the <strong>Chores</strong> tab. You can create Recurring chores (e.g., Trash on Tuesdays) or One-Off tasks for specific dates.</p>
+            <p>
+              Go to the <strong>Chores</strong> tab. You can create Recurring
+              chores (e.g., Trash on Tuesdays) or One-Off tasks for specific
+              dates.
+            </p>
           </div>
           <div>
             <strong className="block text-gray-900">Bonuses 🌟</strong>
-            <p>Extra tasks that earn money <strong>on top</strong> of the allowance. Great for washing cars or big yard work. Group bonuses allow multiple kids to split a reward.</p>
+            <p>
+              Extra tasks that earn money <strong>on top</strong> of the
+              allowance. Great for washing cars or big yard work. Group bonuses
+              allow multiple kids to split a reward.
+            </p>
           </div>
           <div>
             <strong className="block text-gray-900">Approvals</strong>
-            <p>When kids mark tasks done, check the <strong>Approvals</strong> tab. You can Approve (pay), Reject (fail), or request a Retry.</p>
+            <p>
+              When kids mark tasks done, check the <strong>Approvals</strong>{" "}
+              tab. You can Approve (pay), Reject (fail), or request a Retry.
+            </p>
           </div>
           <div>
             <strong className="block text-gray-900">The Bank Manager</strong>
-            <p>Go to the <strong>Kids</strong> tab and click <strong>Manage Funds</strong> to deposit manual cash (birthdays) or cash out when they spend money in the real world.</p>
+            <p>
+              Go to the <strong>Kids</strong> tab and click{" "}
+              <strong>Manage Funds</strong> to deposit manual cash (birthdays)
+              or cash out when they spend money in the real world.
+            </p>
           </div>
         </div>
       </section>
 
       <section>
-        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🙂 For Kids</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          🙂 For Kids
+        </h3>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Dashboard:</strong> See your Todo list. Tap a chore to mark it done.</li>
-          <li><strong>Saving Goals 🎯:</strong> Tap the Goal tab to set a target (e.g., "Lego Set") and track progress.</li>
-          <li><strong>History:</strong> Tap your Balance at the top to see a full history of earnings and spending.</li>
+          <li>
+            <strong>Dashboard:</strong> See your Todo list. Tap a chore to mark
+            it done.
+          </li>
+          <li>
+            <strong>Saving Goals 🎯:</strong> Tap the Goal tab to set a target
+            (e.g., "Lego Set") and track progress.
+          </li>
+          <li>
+            <strong>History:</strong> Tap your Balance at the top to see a full
+            history of earnings and spending.
+          </li>
         </ul>
       </section>
 
       <div className="pt-6 border-t">
-        <Button onClick={onClose} className="w-full">Close Guide</Button>
+        <Button onClick={onClose} className="w-full">
+          Close Guide
+        </Button>
       </div>
     </div>
   </Modal>
