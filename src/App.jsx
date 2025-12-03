@@ -47,6 +47,7 @@ import {
   Power,
   RefreshCw,
   Monitor,
+  HelpCircle,
 } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import {
@@ -2164,6 +2165,7 @@ function ParentView({
   const [newParentPin, setNewParentPin] = useState("");
   const [newParentName, setNewParentName] = useState("");
   const [newParentPin2, setNewParentPin2] = useState("");
+  const [showHelp, setShowHelp] = useState(false);
   
 
   // Ensure kids data is available before running effect
@@ -2318,6 +2320,14 @@ function ParentView({
             <ShieldCheck /> {user.name}'s Dashboard
           </div>
 <div className="flex gap-2">
+  {/* NEW HELP BUTTON */}
+  <button
+    onClick={() => setShowHelp(true)}
+    className="text-gray-400 hover:text-blue-600 transition-colors"
+    title="User Guide"
+  >
+    <HelpCircle size={20} />
+  </button>
             <button
 onClick={onOpenSettings} // <--- CHANGE THIS
   className="text-gray-500 hover:text-blue-600"
@@ -3496,6 +3506,7 @@ onClick={onOpenSettings} // <--- CHANGE THIS
           </div>
         )}
       </main>
+      {showHelp && <UserGuideModal onClose={() => setShowHelp(false)} />}
     </div>
   );
 }
@@ -4184,4 +4195,81 @@ function KidView({
       </main>
     </div>
   );
+
 }
+  const UserGuideModal = ({ onClose }) => (
+  <Modal isOpen={true} onClose={onClose} title="ChorePiggy User Guide">
+    <div className="space-y-6 text-sm text-gray-700 leading-relaxed pb-4">
+      <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-900">
+        <strong>ChorePiggy</strong> is a smart family allowance tracker that teaches financial literacy. 
+        Unlike simple chore charts, it calculates the value of chores dynamically based on a weekly allowance cap.
+      </div>
+
+      <section>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🚀 Getting Started</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Create a Family Account:</strong> One parent creates the main account using an email and password.</li>
+          <li><strong>Setup Wizard:</strong> You will be prompted to enter your Family Name and create the first Parent Profile (with a 4-digit PIN).</li>
+          <li><strong>Add Kids:</strong> Create profiles for your children. You’ll set their Name, PIN, and Weekly Allowance Cap (e.g., $10/week).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">📱 Connect Other Devices</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Invite Link:</strong> In the Parent Dashboard, go to <strong>Settings</strong> to copy the Family Invite Link. Send this to the other parent or kids' devices.</li>
+          <li><strong>App Install:</strong> On mobile devices, tap "Share" (iOS) or the Menu (Android) and select <strong>"Add to Home Screen"</strong> for a full-screen app.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">⚙️ Device Modes</h3>
+        <p className="mb-2 text-xs text-gray-500">Configure these in Settings (Requires Parent PIN):</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>🖥️ Family Mode (Default):</strong> Best for a shared kitchen tablet. Shows list of all members. Login via PIN.</li>
+          <li><strong>🛡️ Parent Solo:</strong> Best for parent's personal phone. Auto-logs into Parent Dashboard.</li>
+          <li><strong>🙂 Kid Solo:</strong> Best for child's personal device. Auto-logs into that child's dashboard.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🛡️ For Parents</h3>
+        <div className="space-y-3">
+          <div>
+            <strong className="block text-gray-900">The "Smart Allowance" System</strong>
+            <p>We use a <strong>Weight System</strong>. You set a Weekly Cap (e.g., $20) and assign chores weights (1x, 2x, 3x difficulty). The app calculates the value automatically. If a kid does 100% of tasks, they get 100% of the cap. If they skip tasks, they earn less. You never overpay!</p>
+          </div>
+          <div>
+            <strong className="block text-gray-900">Managing Chores</strong>
+            <p>Go to the <strong>Chores</strong> tab. You can create Recurring chores (e.g., Trash on Tuesdays) or One-Off tasks for specific dates.</p>
+          </div>
+          <div>
+            <strong className="block text-gray-900">Bonuses 🌟</strong>
+            <p>Extra tasks that earn money <strong>on top</strong> of the allowance. Great for washing cars or big yard work. Group bonuses allow multiple kids to split a reward.</p>
+          </div>
+          <div>
+            <strong className="block text-gray-900">Approvals</strong>
+            <p>When kids mark tasks done, check the <strong>Approvals</strong> tab. You can Approve (pay), Reject (fail), or request a Retry.</p>
+          </div>
+          <div>
+            <strong className="block text-gray-900">The Bank Manager</strong>
+            <p>Go to the <strong>Kids</strong> tab and click <strong>Manage Funds</strong> to deposit manual cash (birthdays) or cash out when they spend money in the real world.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">🙂 For Kids</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Dashboard:</strong> See your Todo list. Tap a chore to mark it done.</li>
+          <li><strong>Saving Goals 🎯:</strong> Tap the Goal tab to set a target (e.g., "Lego Set") and track progress.</li>
+          <li><strong>History:</strong> Tap your Balance at the top to see a full history of earnings and spending.</li>
+        </ul>
+      </section>
+
+      <div className="pt-6 border-t">
+        <Button onClick={onClose} className="w-full">Close Guide</Button>
+      </div>
+    </div>
+  </Modal>
+);
