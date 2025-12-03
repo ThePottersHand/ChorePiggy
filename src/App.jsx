@@ -942,7 +942,7 @@ export default function App() {
   const [showPinPad, setShowPinPad] = useState(false);
   const [pinTarget, setPinTarget] = useState(null);
   const [isPinSetup, setIsPinSetup] = useState(false);
-
+const [showDeviceAdmin, setShowDeviceAdmin] = useState(false);
   const [showInitModal, setShowInitModal] = useState(false);
   const [wizardMode, setWizardMode] = useState("create");
   const [showPasswordRecovery, setShowPasswordRecovery] = useState(false);
@@ -1411,17 +1411,12 @@ useEffect(() => {
     setPinTarget({ ...parent, isGateUnlock: true });
     setShowPinPad(true);
   };
-  const handleGateSuccess = () => {
-    const reset = confirm(
-      "Parent Access Granted. Reset device mode to Family?"
-    );
-    if (reset) {
-      updateDeviceConfig({ mode: "FAMILY", targetId: null });
-      handleLogout();
-    }
-    setShowPinPad(false);
-    setPinTarget(null);
-  };
+const handleGateSuccess = () => {
+  // Instead of an alert, we now open the Admin Menu
+  setShowPinPad(false);
+  setPinTarget(null);
+  setShowDeviceAdmin(true); 
+};
   const onPinPadSuccess = (pin) => {
     if (pinTarget.isGateUnlock) {
       const matchingParent = users.find(
@@ -1815,30 +1810,37 @@ useEffect(() => {
         </Modal>
       )}
       <InstallPrompt />
+{/* NEW DEVICE ADMIN MENU (Triggered by Parent PIN) */}
+      <Modal isOpen={showDeviceAdmin} onClose={() => setShowDeviceAdmin(false)} title="Device Settings">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">Parent access granted. What would you like to do?</p>
 
+          <button onClick={() => { updateDeviceConfig({ mode: 'FAMILY', targetId: null }); handleLogout(); setShowDeviceAdmin(false); }} className="w-full p-4 border rounded-xl flex items-center gap-3 hover:bg-gray-50 text-left">
+            <div className="bg-indigo-100 p-2 rounded-full text-indigo-600"><RefreshCw size={20}/></div>
+            <div><span className="font-bold block text-gray-800">Reset Device Mode</span><span className="text-xs text-gray-500">Return to Family Login screen</span></div>
+          </button>
+
+          <button onClick={() => { handleLogout(); setShowDeviceAdmin(false); }} className="w-full p-4 border rounded-xl flex items-center gap-3 hover:bg-gray-50 text-left">
+            <div className="bg-blue-100 p-2 rounded-full text-blue-600"><Users size={20}/></div>
+            <div><span className="font-bold block text-gray-800">Switch Profile</span><span className="text-xs text-gray-500">Log out current user</span></div>
+          </button>
+
+          <button onClick={() => { handleFullSignOut(); setShowDeviceAdmin(false); }} className="w-full p-4 border border-red-100 bg-red-50 rounded-xl flex items-center gap-3 hover:bg-red-100 text-left">
+            <div className="bg-white p-2 rounded-full text-red-600"><LogOut size={20}/></div>
+            <div><span className="font-bold block text-red-800">Full Sign Out</span><span className="text-xs text-red-500">Disconnect from Family Account</span></div>
+          </button>
+        </div>
+      </Modal>
       {view === "login" && (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
           {/* --- UPDATED HEADER SECTION --- */}
-    <div className="absolute top-4 right-4 flex gap-3">
+<div className="absolute top-4 right-4">
             <button
-              onClick={() => {
-                if (users.length > 0) handleParentGate();
-              }}
+              onClick={() => { if (users.length > 0) handleParentGate(); }}
               className="flex items-center gap-2 text-gray-400 hover:text-blue-500 text-xs font-bold"
             >
               <Settings size={14} /> Device
             </button>
-
-            {/* ONLY SHOW SIGN OUT IF NOT IN KIDS_SHARED MODE */}
-            {deviceConfig?.mode !== 'KIDS_SHARED' && (
-              <button
-                onClick={handleFullSignOut}
-                className="flex items-center gap-2 text-gray-500 hover:text-red-500 text-xs font-bold"
-              >
-                <LogOut size={14} /> Sign Out
-              </button>
-            )}
-          
           </div>
           <div className="max-w-md w-full text-center mb-10">
             <h1 className="text-4xl font-extrabold text-blue-600 flex items-center justify-center gap-3 mb-2">
@@ -2218,18 +2220,12 @@ function ParentView({
           <div className="flex items-center gap-2 text-blue-800 font-bold text-xl">
             <ShieldCheck /> {user.name}'s Dashboard
           </div>
-          <div className="flex gap-2">
+<div className="flex gap-2">
             <button
               onClick={() => setShowSettings(true)}
               className="text-gray-500 hover:text-blue-600"
             >
               <Settings size={20} />
-            </button>
-            <button
-              onClick={logout}
-              className="text-gray-500 hover:text-red-500"
-            >
-              <LogOut size={20} />
             </button>
           </div>
         </div>
@@ -2534,6 +2530,11 @@ function ParentView({
                   </p>
                 )}
               </div>
+            </div>
+            <div className="pt-4 mt-4 border-t border-gray-100">
+              <button onClick={logout} className="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100">
+                <LogOut size={18}/> Log Out
+              </button>
             </div>
           </div>
         </Modal>
@@ -3815,8 +3816,7 @@ function KidView({
           </div>
 
           {/* RIGHT SIDE BUTTONS (Device Settings & Logout) */}
-       <div className="flex gap-2">
-            {/* 1. Parent Gate / Settings (Always Visible) */}
+<div className="flex gap-2">
             <button
               onClick={handleParentGate}
               className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
@@ -3824,17 +3824,6 @@ function KidView({
             >
               <Settings size={18} />
             </button>
-
-            {/* 2. Logout Button (ONLY visible if NOT in Solo Mode) */}
-            {deviceConfig?.mode !== "KID_SOLO" && (
-              <button
-                onClick={logout}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-indigo-100 hover:text-white"
-                title="Sign Out"
-              >
-                <LogOut size={18} />
-              </button>
-            )}
           </div>
         </div>
 
