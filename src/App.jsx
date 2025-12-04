@@ -1274,8 +1274,9 @@ const AuthScreen = ({ inviteInfo }) => {
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
+            {/* CHANGE 1: Conditional Label */}
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              Family Email
+              {inviteInfo ? "Your Email" : "Family Email"}
             </label>
             <input
               type="email"
@@ -1283,7 +1284,7 @@ const AuthScreen = ({ inviteInfo }) => {
               className="w-full border p-3 rounded-lg"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="family@example.com"
+              placeholder={inviteInfo ? "you@example.com" : "family@example.com"}
             />
           </div>
           <div>
@@ -1342,7 +1343,7 @@ const AuthScreen = ({ inviteInfo }) => {
                 ? "Log In to Join"
                 : "Log In"
               : inviteInfo
-              ? "Register to Join"
+              ? "Create Your Account" // CHANGE 2: "Your Account" for invites
               : "Create Family Account"}
           </Button>
         </form>
@@ -1359,7 +1360,10 @@ const AuthScreen = ({ inviteInfo }) => {
               className="text-blue-600 hover:underline text-sm"
             >
               {isLogin
-                ? "Need a family account? Sign Up"
+                // CHANGE 3: "Need an account?" instead of "Need a family account?" when inviting
+                ? inviteInfo 
+                  ? "Need an account? Sign Up" 
+                  : "Need a family account? Sign Up"
                 : "Already have an account? Log In"}
             </button>
           </div>
