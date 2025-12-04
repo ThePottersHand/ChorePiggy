@@ -1771,60 +1771,56 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
 
 const handlePasswordRecoverySubmit = async () => {
     if (!recoveryPassword) return;
-    try {
-      // 1. Verify the Master Password
-      const credential = EmailAuthProvider.credential(
-        authUser.email,
-        recoveryPassword
-      );
-      await signInWithCredential(auth, credential);
+    
+    // 1. Determine which email we are verifying against
+    // If clicking a Parent -> Verify THAT Parent's email
+    // If clicking a Kid or Settings -> Verify the CURRENT logged-in Parent
+    const targetEmail = (pinTarget?.role === 'parent' && pinTarget?.email) 
+      ? pinTarget.email 
+      : authUser.email;
 
-      // 2. Handle Logic based on Context
+    try {
+      // 2. Attempt to Authenticate
+      // This works even if 'targetEmail' is different from 'authUser.email'.
+      // If different, it effectively switches the logged-in user on Firebase.
+      await signInWithEmailAndPassword(auth, targetEmail, recoveryPassword);
+
+      // 3. Handle Success
       if (pinTarget?.isGateUnlock) {
         // --- CASE A: Settings Menu Gate ---
-        // Access granted because they know the device password
+        // We know the password was correct for the current user (gate only uses authUser)
+        // Just open settings.
         const deviceOwnerProfile =
           users.find((u) => u.id === authUser.uid) ||
           users.find((u) => u.role === "parent");
+        
         setSettingsUser(deviceOwnerProfile);
         setShowSettingsModal(true);
-        setShowPasswordRecovery(false); // Close the password modal
       } else {
         // --- CASE B: Profile Unlock ---
+        // We successfully logged in as 'targetEmail'. 
+        // We can now safely grant access to this profile.
         
-        // SECURITY CHECK: 
-        // Allow if target is SELF or a KID.
-        // Deny if target is ANOTHER PARENT.
-        const isSelf = pinTarget.id === authUser.uid;
-        const isKid = pinTarget.role === "kid";
+        setCurrentUser(pinTarget);
+        setView(pinTarget.role === "parent" ? "parent" : "kid");
 
-        if (isSelf || isKid) {
-          // Grant Access
-          setCurrentUser(pinTarget);
-          setView(pinTarget.role === "parent" ? "parent" : "kid");
-
-          if (pinTarget.role === "kid") {
-            localStorage.setItem("chorePiggy_activeUser", pinTarget.id);
-          }
-
-          // Clear locks
-          setShowPinPad(false);
-          setPinTarget(null);
-          setShowPasswordRecovery(false); // Close the password modal
-        } else {
-          // Deny Access
-          alert("Security Alert: You cannot unlock another parent's profile.");
-          setRecoveryPassword(""); 
-          // We do NOT close the modal here, so they can try again or cancel
+        if (pinTarget.role === "kid") {
+          localStorage.setItem("chorePiggy_activeUser", pinTarget.id);
         }
+
+        // Clear locks
+        setShowPinPad(false);
+        setPinTarget(null);
       }
-      
-      // Clear password field for security
+
+      // Cleanup
       setRecoveryPassword("");
-      
+      setShowPasswordRecovery(false);
+
     } catch (e) {
       console.error(e);
-      alert("Incorrect password for " + authUser.email);
+      // Helpful error message so user knows WHICH password failed
+      alert(`Incorrect password for ${targetEmail}`);
     }
   };
 
@@ -2327,16 +2323,21 @@ const onPinPadSuccess = (pin) => {
         <Modal
           isOpen={true}
           onClose={() => setShowPasswordRecovery(false)}
-          // Update Title
-          title={pinTarget?.isGateUnlock ? "Unlock Settings" : "Unlock Profile"}
+          title={
+            pinTarget?.isGateUnlock ? "Unlock Settings" : "Unlock Profile"
+          }
         >
           <div className="space-y-4">
             <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 border border-blue-200">
               <p className="font-bold mb-1">Security Check</p>
               Please enter the password for:
               <br />
+              {/* DYNAMIC EMAIL DISPLAY */}
               <strong className="font-mono text-xs block mt-1">
-                {authUser.email}
+                {/* If it's a specific parent target, show THEIR email. Otherwise (Kid/Gate) show YOUR email */}
+                {pinTarget?.role === 'parent' && pinTarget?.email 
+                  ? pinTarget.email 
+                  : authUser.email}
               </strong>
             </div>
 
@@ -2350,7 +2351,6 @@ const onPinPadSuccess = (pin) => {
             />
 
             <Button onClick={handlePasswordRecoverySubmit} className="w-full">
-              {/* Update Button Text */}
               Verify & Unlock
             </Button>
           </div>
