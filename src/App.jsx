@@ -2259,14 +2259,14 @@ const handleWizardComplete = async (setupData, stayOpen = false) => {
     inviteFamilyName={inviteInfo?.name}
   />
 )}
-      {authUser && !deviceConfig && users.length > 0 && (
+{authUser && !deviceConfig && users.length > 0 && !showInitModal && (
         <DeviceSetupWizard
           kids={kids}
           users={users}
           onComplete={updateDeviceConfig}
-          installEvent={installPromptEvent} // Pass the event
-          isIOS={isIOS} // Pass iOS status
-          isStandalone={isStandalone} // Pass standalone status
+          installEvent={installPromptEvent}
+          isIOS={isIOS}
+          isStandalone={isStandalone}
           isMobile={isMobile}
         />
       )}
