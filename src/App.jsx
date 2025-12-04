@@ -1888,16 +1888,26 @@ const handleWizardComplete = async (setupData, stayOpen = false) => {
     setShowPinPad(true);
   };
 
-  const onPinPadSuccess = (pin) => {
+const onPinPadSuccess = (pin) => {
     if (pinTarget.isGateUnlock) {
-      const matchingParent = users.find(
-        (u) => u.role === "parent" && u.pin === pin
-      );
+      
+      // --- DEBUGGING LOGS (Check your browser console if it fails) ---
+      console.log("Input PIN:", pin, "Type:", typeof pin);
+      console.log("Checking against users:", users.filter(u => u.role === 'parent'));
+      // -------------------------------------------------------------
+
+      // FIX: Wrap both in String() to ensure "1234" matches 1234
+      const matchingParent = users.find((u) => u.role === "parent" && String(u.pin) === String(pin));
+      
       if (matchingParent) {
         setShowPinPad(false);
         setPinTarget(null);
-        setSettingsUser(matchingParent); // Remember who unlocked it
-        setShowSettingsModal(true); // Open the Global Settings
+        setSettingsUser(matchingParent);
+        
+        // Initialize Pending State
+        setPendingConfig(deviceConfig || { mode: 'FAMILY', targetId: null });
+        
+        setShowSettingsModal(true);
       } else {
         alert("Incorrect Parent PIN");
       }
