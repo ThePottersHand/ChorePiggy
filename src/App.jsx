@@ -1905,7 +1905,7 @@ const onPinPadSuccess = (pin) => {
         setSettingsUser(matchingParent);
         
         // Initialize Pending State
-        setPendingConfig(deviceConfig || { mode: 'FAMILY', targetId: null });
+
         
         setShowSettingsModal(true);
       } else {
