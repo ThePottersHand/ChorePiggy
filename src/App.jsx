@@ -1072,10 +1072,17 @@ const DeviceSetupWizard = ({
       </p>
     </div>
 
-    {isIOS ? (
-      /* ... Keep iOS Instructions ... */
+{isIOS ? (
       <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 text-left space-y-2 border border-gray-200">
-         {/* ... (Existing iOS code) ... */}
+        <p className="font-bold text-gray-800">To install on iPhone/iPad:</p>
+        <div className="flex items-center gap-2">
+          <Share size={16} className="text-blue-500" /> 
+          <span>1. Tap <strong>Share</strong> in the menu bar.</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Plus size={16} className="text-blue-500" /> 
+          <span>2. Scroll down & tap <strong>Add to Home Screen</strong>.</span>
+        </div>
       </div>
     ) : (
        installEvent && (
