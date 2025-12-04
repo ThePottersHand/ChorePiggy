@@ -1542,7 +1542,6 @@ export default function App() {
     if (!authUser || !currentFamilyId) return;
 
     // 1. Reset loading state when family changes
-    setDataLoaded(false);
 
     // 1. Fetch Family Name
     getDoc(doc(db, "families", currentFamilyId)).then((snap) => {
@@ -1803,6 +1802,7 @@ export default function App() {
       // 5. CRITICAL FIX: Optimistic UI Update & Listener Restart
       // Manually set state so the "Welcome" screen vanishes immediately
       setUsers([parentData]);
+      setKids(newKids);
       setDataLoaded(true);
       // ^^^^^^^^^^^^^^^^^^^^^^^^^
 
