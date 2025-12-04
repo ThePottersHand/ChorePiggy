@@ -657,7 +657,7 @@ const PinPad = ({
 
       if (newInput.length === 4) {
         if (step === "verify") {
-          if (String(newInput) === String(targetPin)) {
+          if (!targetPin || String(newInput) === String(targetPin)){
             onSuccess(newInput);
           } else {
             triggerError();
@@ -1881,10 +1881,10 @@ const handleWizardComplete = async (setupData, stayOpen = false) => {
     setDeviceConfig(newConfig);
     localStorage.setItem("chorePiggy_deviceConfig", JSON.stringify(newConfig));
   };
-  const handleParentGate = () => {
-    const parent = users.find((u) => u.role === "parent");
-    if (!parent) return;
-    setPinTarget({ ...parent, isGateUnlock: true });
+const handleParentGate = () => {
+    // FIX: Don't lock it to a specific parent. 
+    // Just set the flag so onPinPadSuccess knows to check ALL parents.
+    setPinTarget({ isGateUnlock: true }); 
     setShowPinPad(true);
   };
 
