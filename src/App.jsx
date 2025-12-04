@@ -49,6 +49,11 @@ import {
   RefreshCw,
   Monitor,
   HelpCircle,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  QrCode,
 } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import {
@@ -760,6 +765,7 @@ const PinPad = ({
 // SETUP WIZARD
 const SetupWizard = ({
   onComplete,
+  onClose, // <--- NEW PROP
   mode = "create",
   inviteFamilyName = "",
 }) => {
@@ -774,7 +780,7 @@ const SetupWizard = ({
   const myNewFamilyId = getAuth().currentUser?.uid;
   const inviteLink = `${window.location.origin}${window.location.pathname}?join=${myNewFamilyId}`;
   
-  // NEW: The "Login Only" link for the QR Code
+  // The "Login Only" link for the QR Code
   const kidLoginLink = `${window.location.origin}${window.location.pathname}?kid_login=true`;
 
   const handleAddKid = () => {
@@ -785,25 +791,34 @@ const SetupWizard = ({
     }
   };
 
-  const handleNext = () => {
-    if (mode === "create") setStep("invite");
-    else handleSubmit(); // If joining, we just finish
-  };
-
-  const handleInviteNext = () => {
-    // Save the data to DB first, THEN show Next Steps
-    // We do this by triggering the "handleSubmit" logic but NOT closing the modal yet.
-    // Actually, for simplicity in your current architecture (where onComplete closes modal), 
-    // let's just move to nextSteps and pass the data at the very end.
-    setStep("nextSteps");
-  };
-
-  const handleFinalFinish = () => {
+  // Helper to gather all form data (avoids code duplication)
+  const getFinalData = () => {
     let finalKids = [...kidsList];
+    // If the user typed a kid name but didn't click "Add", include it anyway
     if (kidName && kidPin.length === 4) {
       finalKids.push({ name: kidName, pin: kidPin, allowance: 10 });
     }
-    onComplete({ familyName, parentName, parentPin, kids: finalKids });
+    return { familyName, parentName, parentPin, kids: finalKids };
+  };
+
+  const handleNext = () => {
+    if (mode === "create") setStep("invite");
+    else handleFinalFinish(); // If joining, we just finish immediately
+  };
+
+  // NEW: Save data to DB, then show QR code
+  const handleInviteNext = async () => {
+    const data = getFinalData();
+    // Pass 'true' as second arg to tell App.jsx to KEEP modal open
+    await onComplete(data, true); 
+    setStep("nextSteps");
+  };
+
+  // Used for Join mode or early exit
+  const handleFinalFinish = () => {
+    const data = getFinalData();
+    // Pass 'false' (or undefined) to close modal immediately
+    onComplete(data, false); 
   };
 
   const copyLink = () => {
@@ -824,7 +839,6 @@ const SetupWizard = ({
       <div className="space-y-4">
         {step === "parent" && (
           <div className="space-y-4 animate-in fade-in">
-            {/* ... (Existing Parent Form Code remains same) ... */}
             <p className="text-gray-600 text-sm">
               {mode === "create"
                 ? "First, create the main parent profile."
@@ -885,7 +899,6 @@ const SetupWizard = ({
 
         {step === "kids" && (
           <div className="space-y-4 animate-in fade-in">
-             {/* ... (Existing Kids Form Code remains same) ... */}
             <p className="text-gray-600 text-sm">
               Now, add profiles for your kids.
             </p>
@@ -937,7 +950,6 @@ const SetupWizard = ({
 
         {step === "invite" && (
           <div className="space-y-6 animate-in fade-in text-center">
-             {/* ... (Existing Invite Code remains same) ... */}
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
               <h4 className="font-bold text-yellow-800 mb-2">
                 Invite your Partner
@@ -958,7 +970,7 @@ const SetupWizard = ({
                 Family ID: {myNewFamilyId}
               </p>
             </div>
-            {/* CHANGED ACTION: Go to next steps instead of finish */}
+            {/* SAVES DATA HERE SO DB IS READY FOR NEXT STEP */}
             <Button className="w-full" onClick={handleInviteNext}>
               Next: Connect Kids' Devices
             </Button>
@@ -995,7 +1007,8 @@ const SetupWizard = ({
               </div>
             </div>
 
-            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleFinalFinish}>
+            {/* JUST CLOSES THE MODAL NOW */}
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={onClose}>
               Done! Go to Dashboard
             </Button>
           </div>
@@ -1399,7 +1412,7 @@ export default function App() {
   const [inviteInfo, setInviteInfo] = useState(null);
   // ... existing state variables ...
   const [familyNames, setFamilyNames] = useState({});
-
+const [showSettingsQr, setShowSettingsQr] = useState(false);
   // --- NEW: INSTALLATION STATE ---
   const [installPromptEvent, setInstallPromptEvent] = useState(null);
   const [isIOS, setIsIOS] = useState(false);
@@ -1767,83 +1780,14 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
     }
   };
 
-  const handleWizardComplete = async (setupData) => {
+const handleWizardComplete = async (setupData, stayOpen = false) => { // <--- 1. Add stayOpen param
     try {
       const targetFamilyId =
         wizardMode === "create" ? authUser.uid : joinFamilyId;
 
       if (!targetFamilyId) throw new Error("Invalid Family ID");
 
-      // 1. Create Family Root Meta (Name)
-      if (wizardMode === "create") {
-        const name = setupData.familyName || "My Family";
-        await setDoc(
-          doc(db, "families", targetFamilyId),
-          { familyName: name },
-          { merge: true }
-        );
-        setFamilyNames((prev) => ({ ...prev, [targetFamilyId]: name }));
-      }
-
-      // 2. Check invites if joining
-      if (wizardMode === "join") {
-        try {
-          const configSnap = await getDoc(
-            doc(db, "families", targetFamilyId, "settings", "config")
-          );
-          if (
-            configSnap.exists() &&
-            configSnap.data().invitesEnabled === false
-          ) {
-            alert("This family has disabled new invites.");
-            return;
-          }
-        } catch (e) {
-          console.log("Could not verify invite settings, proceeding...");
-        }
-      }
-
-      // 3. Create Parent Profile
-      const parentData = {
-        id: authUser.uid,
-        name: setupData.parentName,
-        role: "parent",
-        pin: setupData.parentPin,
-      };
-      await setDoc(
-        doc(db, "families", targetFamilyId, "users", authUser.uid),
-        parentData
-      );
-
-      // 4. Add Kids
-      const newKids = [];
-      if (setupData.kids && setupData.kids.length > 0) {
-        for (const k of setupData.kids) {
-          const kidId = generateId();
-          const kidData = {
-            name: k.name,
-            pin: k.pin,
-            role: "kid",
-            balance: 0,
-            savingsGoal: 0,
-            goalName: "",
-            avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-            allowanceAmount: Number(10),
-          };
-          await setDoc(
-            doc(db, "families", targetFamilyId, "kids", kidId),
-            kidData
-          );
-          newKids.push({ id: kidId, ...kidData });
-        }
-      }
-
-      // 5. CRITICAL FIX: Optimistic UI Update & Listener Restart
-      // Manually set state so the "Welcome" screen vanishes immediately
-      setUsers([parentData]);
-      setKids(newKids);
-      setDataLoaded(true);
-      // ^^^^^^^^^^^^^^^^^^^^^^^^^
+      // ... [Keep all your existing save logic here unchanged] ... 
 
       // Update Known Families
       const newKnown = [...new Set([...knownFamilyIds, targetFamilyId])];
@@ -1854,11 +1798,13 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
       );
 
       // Toggle Family ID to force the database listeners to restart/retry
-      // (This fixes the issue where listeners died due to 'missing permissions' before creation)
       setCurrentFamilyId(null);
       setTimeout(() => setCurrentFamilyId(targetFamilyId), 50);
 
-      setShowInitModal(false);
+      // 2. Only close if stayOpen is FALSE
+      if (!stayOpen) {
+        setShowInitModal(false);
+      }
     } catch (e) {
       alert(`Error: ${e.message}`);
     }
@@ -2255,13 +2201,14 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
           mode={isPinSetup ? "setup" : "verify"}
         />
       )}
-      {showInitModal && (
-        <SetupWizard
-          onComplete={handleWizardComplete}
-          mode={wizardMode}
-          inviteFamilyName={inviteInfo?.name}
-        />
-      )}
+{showInitModal && (
+  <SetupWizard
+    onComplete={handleWizardComplete}
+    onClose={() => setShowInitModal(false)} // <--- Add this new prop
+    mode={wizardMode}
+    inviteFamilyName={inviteInfo?.name}
+  />
+)}
       {authUser && !deviceConfig && users.length > 0 && (
         <DeviceSetupWizard
           kids={kids}
@@ -2529,7 +2476,39 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
                 ))}
             </div>
           </div>
+<div className="pt-2 mt-2 border-t border-gray-100">
+  <button
+    onClick={() => setShowSettingsQr(!showSettingsQr)}
+    className="flex items-center justify-between w-full p-3 bg-blue-50 hover:bg-blue-100 rounded-xl text-blue-800 transition-colors group"
+  >
+    <div className="flex items-center gap-3">
+      <div className="bg-white p-1.5 rounded-lg text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
+        <QrCode size={18} />
+      </div>
+      <div className="text-left">
+        <span className="text-xs font-bold block">Kid Login QR</span>
+        <span className="text-[10px] opacity-70 block font-normal">
+          Scan to open login page
+        </span>
+      </div>
+    </div>
+    {showSettingsQr ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+  </button>
 
+  {showSettingsQr && (
+    <div className="mt-3 bg-white p-4 rounded-xl border border-blue-100 shadow-inner flex flex-col items-center animate-in slide-in-from-top-2">
+      <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100 mb-2">
+        <QRCode
+          value={`${window.location.origin}${window.location.pathname}?kid_login=true`}
+          size={140}
+        />
+      </div>
+      <p className="text-[10px] text-center text-gray-400 max-w-[200px]">
+        Scan with a child's device to instantly open the Kid Login screen.
+      </p>
+    </div>
+  )}
+</div>
           {/* 4. FULL LOGOUT */}
           <div className="pt-4 border-t border-gray-100">
             <button
