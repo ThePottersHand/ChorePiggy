@@ -747,14 +747,14 @@ const PinPad = ({
             Cancel
           </Button>
 {/* FIX: Only show Forgot PIN if we are targeting a specific user, not the generic settings gate */}
-          {mode === "verify" && targetPin && (
-            <button
-              onClick={onForgot}
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center justify-center gap-1"
-            >
-              <KeyRound size={12} /> Forgot PIN?
-            </button>
-          )}
+{mode === "verify" && (
+  <button
+    onClick={onForgot}
+    className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center justify-center gap-1"
+  >
+    <KeyRound size={12} /> Forgot PIN?
+  </button>
+)}
         </div>
       </div>
     </div>
@@ -1769,20 +1769,39 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
     setShowPasswordRecovery(true);
   };
 
-  const handlePasswordRecoverySubmit = async () => {
+const handlePasswordRecoverySubmit = async () => {
     if (!recoveryPassword) return;
     try {
+      // We re-authenticate the CURRENT session user
       const credential = EmailAuthProvider.credential(
-        authUser.email,
+        authUser.email, 
         recoveryPassword
       );
       await signInWithCredential(auth, credential);
-      await updateDoc(getFamilyDoc("users", pinTarget.id), { pin: "1234" });
-      alert("Success! Your PIN has been reset to: 1234");
+
+      // --- NEW LOGIC ---
+      if (pinTarget?.isGateUnlock) {
+        // CASE 1: Generic Device Settings Gate
+        // We verified the password of the device owner, so just let them in!
+        // We set the settings user to the current auth user (the device owner)
+        const deviceOwnerProfile = users.find((u) => u.id === authUser.uid) || users.find(u => u.role === 'parent');
+        
+        setSettingsUser(deviceOwnerProfile);
+        setShowSettingsModal(true); 
+        // Do NOT reset any PINs here, just open the door
+      } else {
+        // CASE 2: Specific User Login (e.g. "I am Dad, I forgot my PIN")
+        // Since we targeted a specific user ID, we can safely reset their PIN
+        await updateDoc(getFamilyDoc("users", pinTarget.id), { pin: "1234" });
+        alert("Success! Your PIN has been reset to: 1234");
+      }
+      // -----------------
+
       setRecoveryPassword("");
       setShowPasswordRecovery(false);
     } catch (e) {
-      alert("Incorrect password.");
+      console.error(e);
+      alert("Incorrect password for " + authUser.email);
     }
   };
 
@@ -2281,25 +2300,32 @@ const onPinPadSuccess = (pin) => {
           isMobile={isMobile}
         />
       )}
-      {showPasswordRecovery && (
+{showPasswordRecovery && (
         <Modal
           isOpen={true}
           onClose={() => setShowPasswordRecovery(false)}
-          title="Reset PIN"
+          title={pinTarget?.isGateUnlock ? "Unlock Device Settings" : "Reset PIN"}
         >
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              To reset this PIN, please enter your Family Account Password:
-            </p>
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 border border-blue-200">
+              <p className="font-bold mb-1">Security Check</p>
+              Please enter the password for:
+              <br />
+              {/* DISPLAY THE EMAIL SO YOU KNOW WHOSE PASSWORD IS NEEDED */}
+              <strong className="font-mono text-xs block mt-1">{authUser.email}</strong>
+            </div>
+            
             <input
               type="password"
               className="w-full border p-2 rounded"
               value={recoveryPassword}
               onChange={(e) => setRecoveryPassword(e.target.value)}
-              placeholder="Password"
+              placeholder="Enter Password"
+              autoFocus
             />
+            
             <Button onClick={handlePasswordRecoverySubmit} className="w-full">
-              Verify & Reset PIN to 1234
+              {pinTarget?.isGateUnlock ? "Verify & Unlock Menu" : "Verify & Reset PIN to 1234"}
             </Button>
           </div>
         </Modal>
