@@ -1778,16 +1778,60 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
     }
   };
 
-const handleWizardComplete = async (setupData, stayOpen = false) => { // <--- 1. Add stayOpen param
+const handleWizardComplete = async (setupData, stayOpen = false) => {
     try {
       const targetFamilyId =
         wizardMode === "create" ? authUser.uid : joinFamilyId;
 
       if (!targetFamilyId) throw new Error("Invalid Family ID");
 
-      // ... [Keep all your existing save logic here unchanged] ... 
+      // --- RESTORED DATABASE WRITE LOGIC ---
+      
+      // 1. If Creating: Initialize Family Root & Settings
+      if (wizardMode === "create") {
+        // Create Family Doc
+        await setDoc(doc(db, "families", targetFamilyId), {
+          familyName: setupData.familyName || "My Family",
+          createdAt: new Date().toISOString(),
+          ownerId: authUser.uid,
+        });
 
-      // Update Known Families
+        // Create Settings Config (Critical for Rules)
+        await setDoc(doc(db, "families", targetFamilyId, "settings", "config"), {
+          invitesEnabled: true,
+        });
+      }
+
+      // 2. Create Parent Profile (Me)
+      await setDoc(doc(db, "families", targetFamilyId, "users", authUser.uid), {
+        name: setupData.parentName,
+        pin: setupData.parentPin,
+        role: "parent",
+        email: authUser.email,
+        joinedAt: new Date().toISOString(),
+      });
+
+      // 3. Create Kid Profiles
+      if (setupData.kids && setupData.kids.length > 0) {
+        const kidsCol = collection(db, "families", targetFamilyId, "kids");
+        for (const kid of setupData.kids) {
+          await addDoc(kidsCol, {
+            name: kid.name,
+            pin: kid.pin,
+            role: "kid",
+            balance: 0,
+            savingsGoal: 0,
+            goalName: "",
+            avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+            allowanceAmount: Number(kid.allowance || 10),
+            createdAt: new Date().toISOString(),
+          });
+        }
+      }
+
+      // --- END DATABASE LOGIC ---
+
+      // Update Known Families in Local Storage
       const newKnown = [...new Set([...knownFamilyIds, targetFamilyId])];
       setKnownFamilyIds(newKnown);
       localStorage.setItem(
@@ -1795,16 +1839,17 @@ const handleWizardComplete = async (setupData, stayOpen = false) => { // <--- 1.
         JSON.stringify(newKnown)
       );
 
-      // Toggle Family ID to force the database listeners to restart/retry
+      // Force state refresh
       setCurrentFamilyId(null);
-      setTimeout(() => setCurrentFamilyId(targetFamilyId), 50);
+      setTimeout(() => setCurrentFamilyId(targetFamilyId), 100);
 
-      // 2. Only close if stayOpen is FALSE
+      // Only close if we aren't waiting for the QR step
       if (!stayOpen) {
         setShowInitModal(false);
       }
     } catch (e) {
-      alert(`Error: ${e.message}`);
+      console.error(e);
+      alert(`Error creating family: ${e.message}`);
     }
   };
 
