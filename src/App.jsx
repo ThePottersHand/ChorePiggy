@@ -4212,8 +4212,8 @@ function KidView({
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
 
-  const isGoalReached =
-    user.savingsGoal > 0 && user.balance >= user.savingsGoal;
+  const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
+  const hasAvailableBonuses = data.bonuses.length > 0;
 
   const percentageEarned =
     Math.min((stats.earned / stats.potential) * 100, 100) || 0;
@@ -4527,16 +4527,35 @@ function KidView({
               </span>
             )}
           </button>
-          <button
-            onClick={() => setActiveTab("bonus")}
-            className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all ${
-              activeTab === "bonus"
-                ? "bg-indigo-100 text-indigo-700"
-                : "text-gray-400 hover:bg-gray-50"
-            }`}
-          >
-            <Award size={20} /> Bonus
-          </button>
+<button
+      onClick={() => setActiveTab("bonus")}
+      className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all relative ${
+        activeTab === "bonus"
+          ? "bg-indigo-100 text-indigo-700"
+          : "text-gray-400 hover:bg-gray-50"
+      } ${
+        hasAvailableBonuses && activeTab !== "bonus"
+          ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400"
+          : ""
+      }`}
+    >
+      <Award
+        size={20}
+        className={
+          hasAvailableBonuses && activeTab !== "bonus"
+            ? "fill-yellow-500 text-yellow-600"
+            : ""
+        }
+      />
+      Bonus
+      {/* Notification Dot */}
+      {hasAvailableBonuses && activeTab !== "bonus" && (
+        <span className="absolute top-1 right-2 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+        </span>
+      )}
+    </button>
         </Card>
 
         {/* TAB CONTENT: TODO */}
@@ -4853,9 +4872,14 @@ function KidView({
                       <p className="text-gray-500">
                         You haven't set a savings goal yet!
                       </p>
-                      <Button onClick={() => setEditingGoal(true)}>
-                        Set a Goal
-                      </Button>
+<Button 
+      onClick={() => setEditingGoal(true)} 
+      className="mx-auto"
+    >
+      Set a Goal
+    </Button>
+    
+
                     </div>
                   )}
                 </>
