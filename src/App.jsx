@@ -3994,13 +3994,16 @@ function ParentView({
                         <Wallet size={14} /> Manage Funds
                       </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="w-full text-xs bg-gray-50 hover:bg-gray-100 text-gray-700"
-                      onClick={() => setManagingTasksKid(kid)}
-                    >
-                      <ClipboardList size={14} /> View Tasks
-                    </Button>
+<Button
+  variant="ghost"
+  className="w-full text-xs bg-gray-50 hover:bg-gray-100 text-gray-700"
+  onClick={() => {
+    setManagingTasksKid(kid);
+    setManagerWeekOffset(0); // <--- ADD THIS LINE (Resets to "This Week")
+  }}
+>
+  <ClipboardList size={14} /> View Tasks
+</Button>
                   </Card>
                 );
               })}
