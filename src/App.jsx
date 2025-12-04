@@ -746,7 +746,8 @@ const PinPad = ({
           <Button variant="ghost" className="w-full" onClick={onCancel}>
             Cancel
           </Button>
-          {mode === "verify" && (
+{/* FIX: Only show Forgot PIN if we are targeting a specific user, not the generic settings gate */}
+          {mode === "verify" && targetPin && (
             <button
               onClick={onForgot}
               className="text-xs text-blue-500 hover:text-blue-700 hover:underline flex items-center justify-center gap-1"
