@@ -1274,7 +1274,6 @@ const AuthScreen = ({ inviteInfo }) => {
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
-            {/* CHANGE 1: Conditional Label */}
             <label className="block text-sm font-bold text-gray-700 mb-1">
               {inviteInfo ? "Your Email" : "Family Email"}
             </label>
@@ -1324,14 +1323,20 @@ const AuthScreen = ({ inviteInfo }) => {
           )}
 
           {!isLogin && (
-            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 my-2">
-              <p className="font-bold mb-1">By creating an account, you agree:</p>
-              <ul className="list-disc pl-4 space-y-1">
+            <div className="text-[11px] text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 my-2 leading-relaxed">
+              <p className="font-bold mb-2 text-gray-700">Terms & Conditions of Use:</p>
+              <ul className="list-disc pl-4 space-y-1.5">
                 <li>
-                  <strong>Not a Bank:</strong> This is a tracking tool only.
+                  <strong>Not a Financial Institution:</strong> This application is a tracking tool for virtual allowance only. It does not hold, transfer, or manage real currency.
                 </li>
                 <li>
-                  <strong>Parental Consent:</strong> You are the guardian.
+                  <strong>No Warranty ("As Is"):</strong> This software is provided "as is," without warranty of any kind. The developers are not liable for any data loss, service interruptions, or errors.
+                </li>
+                <li>
+                  <strong>Data Privacy:</strong> We respect your privacy. We do not sell, trade, or transfer your personal data to outside parties. Data is stored securely via Google Firebase.
+                </li>
+                <li>
+                  <strong>User Responsibility:</strong> You acknowledge that you are the guardian responsible for managing family data and consents.
                 </li>
               </ul>
             </div>
@@ -1343,12 +1348,11 @@ const AuthScreen = ({ inviteInfo }) => {
                 ? "Log In to Join"
                 : "Log In"
               : inviteInfo
-              ? "Create Your Account" // CHANGE 2: "Your Account" for invites
+              ? "Create Your Account"
               : "Create Family Account"}
           </Button>
         </form>
 
-        {/* HIDE TOGGLE IN KID MODE */}
         {!isKidLoginMode && (
           <div className="mt-6 text-center">
             <button
@@ -1360,7 +1364,6 @@ const AuthScreen = ({ inviteInfo }) => {
               className="text-blue-600 hover:underline text-sm"
             >
               {isLogin
-                // CHANGE 3: "Need an account?" instead of "Need a family account?" when inviting
                 ? inviteInfo 
                   ? "Need an account? Sign Up" 
                   : "Need a family account? Sign Up"
