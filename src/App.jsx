@@ -49,8 +49,6 @@ import {
   RefreshCw,
   Monitor,
   HelpCircle,
-  ChevronRight,
-  ChevronLeft,
   ChevronDown,
   ChevronUp,
   QrCode,
