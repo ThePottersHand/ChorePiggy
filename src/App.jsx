@@ -165,32 +165,394 @@ const formatTime12hr = (timeString) => {
 
 const AVATARS = [
   // Animals
-  "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🕷️", "🐢", "🐍", "🦎", "🦂", "🦀", "🦑", "🐙", "🦐", "🐠", "🐟", "🐡", "🐬", "🦈", "🐳", "🐋", "🐊", "🐆", "🦓", "🦍", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐏", "🐑", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦡", "🐁", "🐀", "🐿️", "🦔",
+  "🐶",
+  "🐱",
+  "🐭",
+  "🐹",
+  "🐰",
+  "🦊",
+  "🐻",
+  "🐼",
+  "🐨",
+  "🐯",
+  "🦁",
+  "🐮",
+  "🐷",
+  "🐸",
+  "🐵",
+  "🐔",
+  "🐧",
+  "🐦",
+  "🐤",
+  "🦆",
+  "🦅",
+  "🦉",
+  "🦇",
+  "🐺",
+  "🐗",
+  "🐴",
+  "🦄",
+  "🐝",
+  "🐛",
+  "🦋",
+  "🐌",
+  "🐞",
+  "🐜",
+  "🕷️",
+  "🐢",
+  "🐍",
+  "🦎",
+  "🦂",
+  "🦀",
+  "🦑",
+  "🐙",
+  "🦐",
+  "🐠",
+  "🐟",
+  "🐡",
+  "🐬",
+  "🦈",
+  "🐳",
+  "🐋",
+  "🐊",
+  "🐆",
+  "🦓",
+  "🦍",
+  "🐘",
+  "🦛",
+  "🦏",
+  "🐪",
+  "🐫",
+  "🦒",
+  "🦘",
+  "🐃",
+  "🐂",
+  "🐏",
+  "🐑",
+  "🐐",
+  "🦌",
+  "🐕",
+  "🐩",
+  "🐈",
+  "🐓",
+  "🦃",
+  "🦚",
+  "🦜",
+  "🦢",
+  "🦩",
+  "🕊️",
+  "🐇",
+  "🦝",
+  "🦡",
+  "🐁",
+  "🐀",
+  "🐿️",
+  "🦔",
   // Fantasy & People
-  "👶", "👧", "👦", "🦸", "🦸‍♀️", "🥷", "🧚", "🧜", "🧛", "🧟", "🤖", "👽", "👾", "👻", "💀", "💩", "🤡", "🤠", "👑", "💍", "💎", "🧠", "🦷", "🦴", "👀", "👁️",
+  "👶",
+  "👧",
+  "👦",
+  "🦸",
+  "🦸‍♀️",
+  "🥷",
+  "🧚",
+  "🧜",
+  "🧛",
+  "🧟",
+  "🤖",
+  "👽",
+  "👾",
+  "👻",
+  "💀",
+  "💩",
+  "🤡",
+  "🤠",
+  "👑",
+  "💍",
+  "💎",
+  "🧠",
+  "🦷",
+  "🦴",
+  "👀",
+  "👁️",
   // Sports & Hobbies
-  "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🎮", "🕹️", "🎲", "🎸", "🎹", "🎺", "🎻", "🥁", "🎤", "🎧", "🎨", "🎬",
+  "⚽",
+  "🏀",
+  "🏈",
+  "⚾",
+  "🥎",
+  "🎾",
+  "🏐",
+  "🏉",
+  "🥏",
+  "🎱",
+  "🪀",
+  "🏓",
+  "🏸",
+  "🏒",
+  "🏑",
+  "🥍",
+  "🏏",
+  "🥅",
+  "⛳",
+  "🪁",
+  "🏹",
+  "🎣",
+  "🤿",
+  "🥊",
+  "🥋",
+  "🎽",
+  "🛹",
+  "🛷",
+  "⛸️",
+  "🥌",
+  "🎿",
+  "⛷️",
+  "🏂",
+  "🎮",
+  "🕹️",
+  "🎲",
+  "🎸",
+  "🎹",
+  "🎺",
+  "🎻",
+  "🥁",
+  "🎤",
+  "🎧",
+  "🎨",
+  "🎬",
   // Food
-  "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🌽", "🥕", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🥞", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟", "🍕", "🥪", "🥙", "🌮", "🌯", "🥗", "🥘", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🍤", "🍙", "🍚", "🍘", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🥤", "🧃",
+  "🍏",
+  "🍎",
+  "🍐",
+  "🍊",
+  "🍋",
+  "🍌",
+  "🍉",
+  "🍇",
+  "🍓",
+  "🍈",
+  "🍒",
+  "🍑",
+  "🥭",
+  "🍍",
+  "🥥",
+  "🥝",
+  "🍅",
+  "🍆",
+  "🥑",
+  "🥦",
+  "🥬",
+  "🥒",
+  "🌶️",
+  "🌽",
+  "🥕",
+  "🥔",
+  "🍠",
+  "🥐",
+  "🥯",
+  "🍞",
+  "🥖",
+  "🥨",
+  "🧀",
+  "🥚",
+  "🍳",
+  "🥞",
+  "🥓",
+  "🥩",
+  "🍗",
+  "🍖",
+  "🌭",
+  "🍔",
+  "🍟",
+  "🍕",
+  "🥪",
+  "🥙",
+  "🌮",
+  "🌯",
+  "🥗",
+  "🥘",
+  "🥫",
+  "🍝",
+  "🍜",
+  "🍲",
+  "🍛",
+  "🍣",
+  "🍱",
+  "🥟",
+  "🍤",
+  "🍙",
+  "🍚",
+  "🍘",
+  "🍥",
+  "🥮",
+  "🍡",
+  "🥟",
+  "🥠",
+  "🥡",
+  "🍦",
+  "🍧",
+  "🍨",
+  "🍩",
+  "🍪",
+  "🎂",
+  "🍰",
+  "🧁",
+  "🥧",
+  "🍫",
+  "🍬",
+  "🍭",
+  "🍮",
+  "🍯",
+  "🥤",
+  "🧃",
   // Vehicles
-  "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🚚", "🚛", "🚜", "🛴", "🚲", "🛵", "🏍️", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "🚁", "🛩️", "✈️", "🛫", "🛬", "🚀", "🛸", "🛰️"
+  "🚗",
+  "🚕",
+  "🚙",
+  "🚌",
+  "🚎",
+  "🏎️",
+  "🚓",
+  "🚑",
+  "🚒",
+  "🚐",
+  "🚚",
+  "🚛",
+  "🚜",
+  "🛴",
+  "🚲",
+  "🛵",
+  "🏍️",
+  "🚨",
+  "🚔",
+  "🚍",
+  "🚘",
+  "🚖",
+  "🚡",
+  "🚠",
+  "🚟",
+  "🚃",
+  "🚋",
+  "🚞",
+  "🚝",
+  "🚄",
+  "🚅",
+  "🚈",
+  "🚂",
+  "🚆",
+  "🚇",
+  "🚊",
+  "🚉",
+  "🚁",
+  "🛩️",
+  "✈️",
+  "🛫",
+  "🛬",
+  "🚀",
+  "🛸",
+  "🛰️",
 ];
 
 const THEME_COLORS = [
-  { name: "Indigo", bg: "bg-indigo-600", light: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-700" },
-  { name: "Pink", bg: "bg-pink-500", light: "bg-pink-50", border: "border-pink-200", text: "text-pink-700" },
-  { name: "Blue", bg: "bg-blue-500", light: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
-  { name: "Green", bg: "bg-green-500", light: "bg-green-50", border: "border-green-200", text: "text-green-700" },
-  { name: "Purple", bg: "bg-purple-600", light: "bg-purple-50", border: "border-purple-200", text: "text-purple-700" },
-  { name: "Orange", bg: "bg-orange-500", light: "bg-orange-50", border: "border-orange-200", text: "text-orange-700" },
-  { name: "Red", bg: "bg-red-500", light: "bg-red-50", border: "border-red-200", text: "text-red-700" },
-  { name: "Teal", bg: "bg-teal-500", light: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
-  { name: "Yellow", bg: "bg-yellow-400", light: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-800" },
-  { name: "Cyan", bg: "bg-cyan-500", light: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-700" },
-  { name: "Lime", bg: "bg-lime-500", light: "bg-lime-50", border: "border-lime-200", text: "text-lime-700" },
-  { name: "Fuchsia", bg: "bg-fuchsia-500", light: "bg-fuchsia-50", border: "border-fuchsia-200", text: "text-fuchsia-700" },
-  { name: "Rose", bg: "bg-rose-500", light: "bg-rose-50", border: "border-rose-200", text: "text-rose-700" },
-  { name: "Sky", bg: "bg-sky-500", light: "bg-sky-50", border: "border-sky-200", text: "text-sky-700" },
+  {
+    name: "Indigo",
+    bg: "bg-indigo-600",
+    light: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
+  },
+  {
+    name: "Pink",
+    bg: "bg-pink-500",
+    light: "bg-pink-50",
+    border: "border-pink-200",
+    text: "text-pink-700",
+  },
+  {
+    name: "Blue",
+    bg: "bg-blue-500",
+    light: "bg-blue-50",
+    border: "border-blue-200",
+    text: "text-blue-700",
+  },
+  {
+    name: "Green",
+    bg: "bg-green-500",
+    light: "bg-green-50",
+    border: "border-green-200",
+    text: "text-green-700",
+  },
+  {
+    name: "Purple",
+    bg: "bg-purple-600",
+    light: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
+  },
+  {
+    name: "Orange",
+    bg: "bg-orange-500",
+    light: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
+  },
+  {
+    name: "Red",
+    bg: "bg-red-500",
+    light: "bg-red-50",
+    border: "border-red-200",
+    text: "text-red-700",
+  },
+  {
+    name: "Teal",
+    bg: "bg-teal-500",
+    light: "bg-teal-50",
+    border: "border-teal-200",
+    text: "text-teal-700",
+  },
+  {
+    name: "Yellow",
+    bg: "bg-yellow-400",
+    light: "bg-yellow-50",
+    border: "border-yellow-200",
+    text: "text-yellow-800",
+  },
+  {
+    name: "Cyan",
+    bg: "bg-cyan-500",
+    light: "bg-cyan-50",
+    border: "border-cyan-200",
+    text: "text-cyan-700",
+  },
+  {
+    name: "Lime",
+    bg: "bg-lime-500",
+    light: "bg-lime-50",
+    border: "border-lime-200",
+    text: "text-lime-700",
+  },
+  {
+    name: "Fuchsia",
+    bg: "bg-fuchsia-500",
+    light: "bg-fuchsia-50",
+    border: "border-fuchsia-200",
+    text: "text-fuchsia-700",
+  },
+  {
+    name: "Rose",
+    bg: "bg-rose-500",
+    light: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
+  },
+  {
+    name: "Sky",
+    bg: "bg-sky-500",
+    light: "bg-sky-50",
+    border: "border-sky-200",
+    text: "text-sky-700",
+  },
 ];
 // --- UI COMPONENTS ---
 
@@ -592,9 +954,18 @@ const SetupWizard = ({
     </Modal>
   );
 };
-const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, isStandalone }) => {
+const DeviceSetupWizard = ({
+  kids,
+  users = [],
+  onComplete,
+  installEvent,
+  isIOS,
+  isStandalone,
+}) => {
   // If not installed, start at 'install-step', otherwise go straight to 'select-mode'
-  const [step, setStep] = useState(!isStandalone ? "install-step" : "select-mode");
+  const [step, setStep] = useState(
+    !isStandalone ? "install-step" : "select-mode"
+  );
 
   const handleInstallClick = () => {
     if (installEvent) {
@@ -619,7 +990,6 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
   return (
     <Modal isOpen={true} onClose={null} title="Setup This Device">
       <div className="space-y-4">
-        
         {/* STEP 1: INSTALLATION (Skipped if already installed) */}
         {step === "install-step" && (
           <div className="text-center space-y-6 animate-in fade-in">
@@ -629,7 +999,8 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
             <div>
               <h3 className="font-bold text-lg text-gray-800">Install App?</h3>
               <p className="text-sm text-gray-500 mt-2">
-                For the best experience, add ChorePiggy to your home screen. It will look and feel like a native app!
+                For the best experience, add ChorePiggy to your home screen. It
+                will look and feel like a native app!
               </p>
             </div>
 
@@ -645,27 +1016,32 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
                 <div className="flex items-center gap-2">
                   <span>2. Scroll down & tap</span>
                   <span className="inline-flex items-center gap-1 font-bold text-gray-800">
-                    <Plus size={14} className="border border-gray-400 rounded-[4px] p-[1px]"/> Add to Home Screen
+                    <Plus
+                      size={14}
+                      className="border border-gray-400 rounded-[4px] p-[1px]"
+                    />{" "}
+                    Add to Home Screen
                   </span>
                 </div>
                 <div className="mt-2 text-center text-xs text-gray-400">
-                  (After adding, close this tab and open the app from your home screen!)
+                  (After adding, close this tab and open the app from your home
+                  screen!)
                 </div>
               </div>
             ) : (
-               installEvent && (
-                <Button 
-                  onClick={handleInstallClick} 
+              installEvent && (
+                <Button
+                  onClick={handleInstallClick}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
                 >
                   Install Now
                 </Button>
-               )
+              )
             )}
 
-            <Button 
-              variant="ghost" 
-              onClick={() => setStep("select-mode")} 
+            <Button
+              variant="ghost"
+              onClick={() => setStep("select-mode")}
               className="w-full text-gray-400 font-normal"
             >
               Skip / Already Installed
@@ -729,8 +1105,12 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
             </div>
             {/* Back button to install step if they skipped it by accident */}
             {!isStandalone && (
-              <Button variant="ghost" onClick={() => setStep("install-step")} className="w-full mt-2 text-xs">
-                 Back to Install
+              <Button
+                variant="ghost"
+                onClick={() => setStep("install-step")}
+                className="w-full mt-2 text-xs"
+              >
+                Back to Install
               </Button>
             )}
           </div>
@@ -776,8 +1156,6 @@ const DeviceSetupWizard = ({ kids, users = [], onComplete, installEvent, isIOS, 
     </Modal>
   );
 };
-
-
 
 const AuthScreen = ({ inviteInfo }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -885,16 +1263,22 @@ const AuthScreen = ({ inviteInfo }) => {
 
           {!isLogin && (
             <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 my-2">
-              <p className="font-bold mb-1">By creating an account, you agree:</p>
+              <p className="font-bold mb-1">
+                By creating an account, you agree:
+              </p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>
-                  <strong>Not a Bank:</strong> This is a tracking tool only. No real funds are held or transferred.
+                  <strong>Not a Bank:</strong> This is a tracking tool only. No
+                  real funds are held or transferred.
                 </li>
                 <li>
-                  <strong>Parental Consent:</strong> You are the guardian authorized to create profiles for the minors added to this family.
+                  <strong>Parental Consent:</strong> You are the guardian
+                  authorized to create profiles for the minors added to this
+                  family.
                 </li>
                 <li>
-                  <strong>As-Is Service:</strong> We are not responsible for data loss or family disputes over allowance!
+                  <strong>As-Is Service:</strong> We are not responsible for
+                  data loss or family disputes over allowance!
                 </li>
               </ul>
             </div>
@@ -987,7 +1371,8 @@ export default function App() {
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    return () =>
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
   }, []);
 
   const [deviceConfig, setDeviceConfig] = useState(() => {
@@ -1195,7 +1580,7 @@ export default function App() {
             id: doc.id,
             ...doc.data(),
           }));
-if (key === "users") {
+          if (key === "users") {
             setUsers(data);
             setDataLoaded(true);
 
@@ -1418,7 +1803,8 @@ if (key === "users") {
       // 5. CRITICAL FIX: Optimistic UI Update & Listener Restart
       // Manually set state so the "Welcome" screen vanishes immediately
       setUsers([parentData]);
-      setKids(newKids);
+      setDataLoaded(true);
+      // ^^^^^^^^^^^^^^^^^^^^^^^^^
 
       // Update Known Families
       const newKnown = [...new Set([...knownFamilyIds, targetFamilyId])];
@@ -1641,7 +2027,7 @@ if (key === "users") {
       );
     }
   };
-const submitBonus = async (bonus, kidId) => {
+  const submitBonus = async (bonus, kidId) => {
     // 1. Create the pending log immediately
     await setDoc(getFamilyDoc("task_log"), {
       type: "bonus",
@@ -1657,7 +2043,7 @@ const submitBonus = async (bonus, kidId) => {
     // 2. Delete the bonus from the board so no one else can grab it
     await deleteDoc(getFamilyDoc("bonuses", bonus.id));
   };
-const addBonus = async (title, reward) => {
+  const addBonus = async (title, reward) => {
     // Simple: Just title and reward. No workers array, no maxKids.
     setDoc(getFamilyDoc("bonuses"), {
       title,
@@ -1837,14 +2223,14 @@ const addBonus = async (title, reward) => {
           inviteFamilyName={inviteInfo?.name}
         />
       )}
- {authUser && !deviceConfig && users.length > 0 && (
+      {authUser && !deviceConfig && users.length > 0 && (
         <DeviceSetupWizard
           kids={kids}
           users={users}
           onComplete={updateDeviceConfig}
           installEvent={installPromptEvent} // Pass the event
-          isIOS={isIOS}                     // Pass iOS status
-          isStandalone={isStandalone}       // Pass standalone status
+          isIOS={isIOS} // Pass iOS status
+          isStandalone={isStandalone} // Pass standalone status
         />
       )}
       {showPasswordRecovery && (
@@ -1892,7 +2278,7 @@ const addBonus = async (title, reward) => {
           </div>
         </Modal>
       )}
-     
+
       {/* --- GLOBAL FAMILY SETTINGS MODAL --- */}
       <Modal
         isOpen={showSettingsModal}
@@ -2075,7 +2461,7 @@ const addBonus = async (title, reward) => {
               </div>
             </div>
             {/* List other parents */}
-{/* List other parents */}
+            {/* List other parents */}
             <div className="space-y-2">
               {users
                 .filter((u) => u.role === "parent" && u.id !== settingsUser?.id)
@@ -2085,12 +2471,12 @@ const addBonus = async (title, reward) => {
                     className="flex justify-between items-center bg-gray-50 p-2 rounded"
                   >
                     <span className="font-bold text-gray-700">{p.name}</span>
-                    
+
                     {/* NEW CHECK: If this parent ID matches the Family ID, they are the owner */}
                     {p.id === currentFamilyId ? (
-                       <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-1 rounded-full border border-blue-200">
-                         Owner
-                       </span>
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-1 rounded-full border border-blue-200">
+                        Owner
+                      </span>
                     ) : (
                       <button
                         onClick={() => deleteParent(p.id)}
@@ -2322,7 +2708,7 @@ const addBonus = async (title, reward) => {
           }}
         />
       )}
-{view === "kid" && (
+      {view === "kid" && (
         <KidView
           user={kids.find((k) => k.id === currentUser.id) || currentUser}
           data={data}
@@ -2467,7 +2853,7 @@ function ParentView({
       }
     }
   };
-const handleBonusApproval = (task) => {
+  const handleBonusApproval = (task) => {
     // 1. Calculate Payout
     let payout = 0;
 
@@ -3631,86 +4017,90 @@ const handleBonusApproval = (task) => {
             <div className="space-y-2">
               <h3 className="font-bold text-gray-700">Active Schedules</h3>
               {data.chores
-              .sort((a, b) => {
-                const kidA = data.kids.find((k) => k.id === a.kidId)?.name || "z";
-                const kidB = data.kids.find((k) => k.id === b.kidId)?.name || "z";
-                
-                // 1. Sort by Kid Name
-                if (kidA < kidB) return -1;
-                if (kidA > kidB) return 1;
+                .sort((a, b) => {
+                  const kidA =
+                    data.kids.find((k) => k.id === a.kidId)?.name || "z";
+                  const kidB =
+                    data.kids.find((k) => k.id === b.kidId)?.name || "z";
 
-                // 2. If same kid, sort by Chore Title
-                return a.title.localeCompare(b.title);
-              })
-              .map((chore) => {
-                const assignedKid = data.kids.find((k) => k.id === chore.kidId);
-                const isPaused =
-                  chore.pausedUntil && chore.pausedUntil > getLocalISODate();
-                return (
-                  <div
-                    key={chore.id}
-                    className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center ${
-                      isPaused ? "opacity-60 grayscale" : ""
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-800">
-                          {chore.title}
-                        </span>
-                        {chore.weight > 1 && (
-                          <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                            {chore.weight}x
+                  // 1. Sort by Kid Name
+                  if (kidA < kidB) return -1;
+                  if (kidA > kidB) return 1;
+
+                  // 2. If same kid, sort by Chore Title
+                  return a.title.localeCompare(b.title);
+                })
+                .map((chore) => {
+                  const assignedKid = data.kids.find(
+                    (k) => k.id === chore.kidId
+                  );
+                  const isPaused =
+                    chore.pausedUntil && chore.pausedUntil > getLocalISODate();
+                  return (
+                    <div
+                      key={chore.id}
+                      className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center ${
+                        isPaused ? "opacity-60 grayscale" : ""
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-800">
+                            {chore.title}
                           </span>
-                        )}
-                        {isPaused && (
-                          <span className="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                            <PauseCircle size={10} /> Paused
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500 flex gap-2 items-center">
-                        <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">
-                          {assignedKid?.name || "Unknown"}
-                        </span>
-                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                          {chore.type === "one_off"
-                            ? `One-off: ${formatDayDisplay(chore.date)}`
-                            : chore.days.length === 7
-                            ? "Everyday"
-                            : `${chore.days.length} days/wk`}
-                        </span>
-                      </div>
-                      {(chore.startTime || chore.doByTime) && (
-                        <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                          <Clock size={10} />
-                          {chore.startTime
-                            ? formatTime12hr(chore.startTime)
-                            : "Start"}{" "}
-                          {chore.startTime && chore.doByTime && " - "}
-                          {chore.doByTime
-                            ? `Due ${formatTime12hr(chore.doByTime)}`
-                            : ""}
+                          {chore.weight > 1 && (
+                            <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                              {chore.weight}x
+                            </span>
+                          )}
+                          {isPaused && (
+                            <span className="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                              <PauseCircle size={10} /> Paused
+                            </span>
+                          )}
                         </div>
-                      )}
+                        <div className="text-sm text-gray-500 flex gap-2 items-center">
+                          <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">
+                            {assignedKid?.name || "Unknown"}
+                          </span>
+                          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+                            {chore.type === "one_off"
+                              ? `One-off: ${formatDayDisplay(chore.date)}`
+                              : chore.days.length === 7
+                              ? "Everyday"
+                              : `${chore.days.length} days/wk`}
+                          </span>
+                        </div>
+                        {(chore.startTime || chore.doByTime) && (
+                          <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                            <Clock size={10} />
+                            {chore.startTime
+                              ? formatTime12hr(chore.startTime)
+                              : "Start"}{" "}
+                            {chore.startTime && chore.doByTime && " - "}
+                            {chore.doByTime
+                              ? `Due ${formatTime12hr(chore.doByTime)}`
+                              : ""}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingChore(chore)}
+                          className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => deleteChore(chore.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingChore(chore)}
-                        className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => deleteChore(chore.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         )}
@@ -3721,7 +4111,7 @@ const handleBonusApproval = (task) => {
                 <Star className="fill-yellow-500 text-yellow-500" /> Add Bonus
                 Opportunity
               </h3>
-<div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1">
                   <input
                     className="w-full border border-yellow-200 p-2 rounded-lg"
@@ -3757,7 +4147,7 @@ const handleBonusApproval = (task) => {
             </Card>
             <div className="space-y-2">
               <h3 className="font-bold text-gray-700">Available Bonuses</h3>
-{data.bonuses.map((bonus) => (
+              {data.bonuses.map((bonus) => (
                 <div
                   key={bonus.id}
                   className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
@@ -3787,7 +4177,7 @@ const handleBonusApproval = (task) => {
                     </button>
                   </div>
                 </div>
-            ))}
+              ))}
             </div>
           </div>
         )}
@@ -3808,9 +4198,9 @@ function KidView({
   deviceConfig,
   handleParentGate,
 }) {
+  const currentTheme =
+    THEME_COLORS.find((c) => c.name === user.themeColor) || THEME_COLORS[0];
 
-  const currentTheme = THEME_COLORS.find(c => c.name === user.themeColor) || THEME_COLORS[0];
-  
   const [activeTab, setActiveTab] = useState("todo");
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalName, setGoalName] = useState(user.goalName || "");
@@ -3822,7 +4212,8 @@ function KidView({
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
 
-const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
+  const isGoalReached =
+    user.savingsGoal > 0 && user.balance >= user.savingsGoal;
 
   const percentageEarned =
     Math.min((stats.earned / stats.potential) * 100, 100) || 0;
@@ -3845,7 +4236,7 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
   return (
     <div className={"min-h-screen pb-20 font-sans " + currentTheme.light}>
       {/* AVATAR PICKER MODAL */}
-{/* AVATAR & THEME PICKER MODAL */}
+      {/* AVATAR & THEME PICKER MODAL */}
       <Modal
         isOpen={avatarPickerOpen}
         onClose={() => setAvatarPickerOpen(false)}
@@ -3854,14 +4245,20 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
         <div className="space-y-6">
           {/* 1. COLOR PICKER */}
           <div>
-            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Pick Your Color</h4>
+            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">
+              Pick Your Color
+            </h4>
             <div className="flex flex-wrap gap-3 justify-center">
               {THEME_COLORS.map((color) => (
                 <button
                   key={color.name}
                   onClick={() => updateKid(user.id, { themeColor: color.name })}
-                  className={`w-10 h-10 rounded-full ${color.bg} border-4 transition-transform hover:scale-110 ${
-                    user.themeColor === color.name ? "border-white shadow-lg ring-2 ring-gray-300" : "border-transparent opacity-70 hover:opacity-100"
+                  className={`w-10 h-10 rounded-full ${
+                    color.bg
+                  } border-4 transition-transform hover:scale-110 ${
+                    user.themeColor === color.name
+                      ? "border-white shadow-lg ring-2 ring-gray-300"
+                      : "border-transparent opacity-70 hover:opacity-100"
                   }`}
                   title={color.name}
                 />
@@ -3871,18 +4268,25 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
 
           {/* 2. AVATAR PICKER */}
           <div>
-             <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Pick Your Avatar</h4>
-             <div className="grid grid-cols-4 gap-4 max-h-60 overflow-y-auto p-2">
+            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">
+              Pick Your Avatar
+            </h4>
+            <div className="grid grid-cols-4 gap-4 max-h-60 overflow-y-auto p-2">
               {AVATARS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => {
                     updateKid(user.id, { avatar: emoji });
                     // Optional: Close modal on avatar pick, or let them pick color too
-                    // setAvatarPickerOpen(false); 
+                    // setAvatarPickerOpen(false);
                   }}
                   className={`text-4xl p-2 rounded-xl transition-colors ${
-                    user.avatar === emoji ? currentTheme.light + " ring-2 ring-offset-1 ring-" + currentTheme.name.toLowerCase() + "-300" : "hover:bg-gray-100"
+                    user.avatar === emoji
+                      ? currentTheme.light +
+                        " ring-2 ring-offset-1 ring-" +
+                        currentTheme.name.toLowerCase() +
+                        "-300"
+                      : "hover:bg-gray-100"
                   }`}
                 >
                   {emoji}
@@ -3945,7 +4349,12 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
       </Modal>
 
       {/* HEADER SECTION */}
-      <div className={currentTheme.bg + " text-white rounded-b-3xl shadow-xl p-6 pt-8 relative overflow-hidden"}>
+      <div
+        className={
+          currentTheme.bg +
+          " text-white rounded-b-3xl shadow-xl p-6 pt-8 relative overflow-hidden"
+        }
+      >
         <div className="absolute top-0 right-0 p-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
         <div className="flex justify-between items-start mb-4 relative z-10">
           <div className="flex items-center gap-3">
@@ -4090,19 +4499,28 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
           >
             <CalendarDays size={20} /> Tasks
           </button>
-<button
+          <button
             onClick={() => setActiveTab("savings")}
             className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all relative ${
               activeTab === "savings"
-                ? `bg-${currentTheme.light.split('-')[1]}-100 text-${currentTheme.text.split('-')[1]}-700`
+                ? `bg-${currentTheme.light.split("-")[1]}-100 text-${
+                    currentTheme.text.split("-")[1]
+                  }-700`
                 : "text-gray-400 hover:bg-gray-50"
-            } ${isGoalReached && activeTab !== 'savings' ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400" : ""}`}
+            } ${
+              isGoalReached && activeTab !== "savings"
+                ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400"
+                : ""
+            }`}
           >
-            <Target size={20} className={isGoalReached ? "fill-yellow-500 text-yellow-600" : ""} /> 
+            <Target
+              size={20}
+              className={isGoalReached ? "fill-yellow-500 text-yellow-600" : ""}
+            />
             {isGoalReached ? "GOAL!" : "Goal"}
-            
+
             {/* Notification Dot */}
-            {isGoalReached && activeTab !== 'savings' && (
+            {isGoalReached && activeTab !== "savings" && (
               <span className="absolute top-1 right-2 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
@@ -4300,21 +4718,26 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
         )}
 
         {/* TAB CONTENT: SAVINGS */}
-{/* TAB CONTENT: SAVINGS */}
+        {/* TAB CONTENT: SAVINGS */}
         {activeTab === "savings" && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 relative">
-            
             {/* --- FIREWORKS CELEBRATION --- */}
             {isGoalReached && (
               <div className="absolute inset-x-0 -top-4 z-50 text-center pointer-events-none">
-                 <Confetti />
-                 <div className="bg-yellow-400 text-yellow-900 font-black text-xl py-2 px-4 rounded-full shadow-lg border-4 border-white inline-block animate-bounce relative z-50 transform -rotate-2">
-                   🎉 GOAL REACHED! 🎉
-                 </div>
+                <Confetti />
+                <div className="bg-yellow-400 text-yellow-900 font-black text-xl py-2 px-4 rounded-full shadow-lg border-4 border-white inline-block animate-bounce relative z-50 transform -rotate-2">
+                  🎉 GOAL REACHED! 🎉
+                </div>
               </div>
             )}
 
-            <Card className={`p-6 text-center space-y-4 ${isGoalReached ? "border-4 border-yellow-400 shadow-yellow-200 shadow-xl bg-yellow-50" : ""}`}>
+            <Card
+              className={`p-6 text-center space-y-4 ${
+                isGoalReached
+                  ? "border-4 border-yellow-400 shadow-yellow-200 shadow-xl bg-yellow-50"
+                  : ""
+              }`}
+            >
               <h2 className="text-gray-500 font-semibold uppercase tracking-wider text-xs">
                 Saving For
               </h2>
@@ -4364,7 +4787,13 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
                   {user.savingsGoal > 0 ? (
                     <>
                       <div className="flex items-center justify-center gap-2">
-                        <Target className={isGoalReached ? "text-yellow-600 animate-spin-slow" : "text-indigo-500"} />
+                        <Target
+                          className={
+                            isGoalReached
+                              ? "text-yellow-600 animate-spin-slow"
+                              : "text-indigo-500"
+                          }
+                        />
                         <h3 className="text-3xl font-extrabold text-indigo-900">
                           {user.goalName}
                         </h3>
@@ -4374,7 +4803,11 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
                       </p>
                       <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden w-full border border-gray-200">
                         <div
-                          className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${isGoalReached ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 animate-pulse" : "bg-gradient-to-r from-blue-400 to-indigo-600"}`}
+                          className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${
+                            isGoalReached
+                              ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 animate-pulse"
+                              : "bg-gradient-to-r from-blue-400 to-indigo-600"
+                          }`}
                           style={{
                             width: `${Math.min(
                               (user.balance / user.savingsGoal) * 100,
@@ -4383,17 +4816,23 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
                           }}
                         />
                       </div>
-                      <p className={`text-sm font-bold ${isGoalReached ? "text-yellow-700 text-lg" : "text-indigo-600"}`}>
+                      <p
+                        className={`text-sm font-bold ${
+                          isGoalReached
+                            ? "text-yellow-700 text-lg"
+                            : "text-indigo-600"
+                        }`}
+                      >
                         {Math.round(
                           Math.min((user.balance / user.savingsGoal) * 100, 100)
                         )}
                         % Reached
                       </p>
-                      
+
                       {isGoalReached && (
-                         <div className="text-xs font-bold text-green-600 bg-green-100 p-2 rounded-lg animate-pulse">
-                           You did it! Ask your parent to cash out!
-                         </div>
+                        <div className="text-xs font-bold text-green-600 bg-green-100 p-2 rounded-lg animate-pulse">
+                          You did it! Ask your parent to cash out!
+                        </div>
                       )}
 
                       <Button
@@ -4468,36 +4907,39 @@ const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
                   </div>
                 </div>
               ))}
-{data.bonuses.map((bonus) => (
-                <div
-                  key={bonus.id}
-                  className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex justify-between items-center"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
-                      <Star size={20} className="fill-yellow-500 text-yellow-500" />
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-800 block">
-                        {bonus.title}
-                      </span>
-                      <span className="text-xs text-yellow-700 font-bold uppercase tracking-wide">
-                        First Come, First Served
-                      </span>
-                    </div>
+            {data.bonuses.map((bonus) => (
+              <div
+                key={bonus.id}
+                className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200 shadow-sm flex justify-between items-center"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
+                    <Star
+                      size={20}
+                      className="fill-yellow-500 text-yellow-500"
+                    />
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="font-bold text-lg text-green-600 bg-white px-3 py-1 rounded-lg shadow-sm">
-                      +{formatCurrency(bonus.reward)}
-                    </div>
-                    <button
-                      onClick={() => submitBonus(bonus, user.id)}
-                      className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95"
-                    >
-                      I Did It!
-                    </button>
+                  <div>
+                    <span className="font-bold text-gray-800 block">
+                      {bonus.title}
+                    </span>
+                    <span className="text-xs text-yellow-700 font-bold uppercase tracking-wide">
+                      First Come, First Served
+                    </span>
                   </div>
                 </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="font-bold text-lg text-green-600 bg-white px-3 py-1 rounded-lg shadow-sm">
+                    +{formatCurrency(bonus.reward)}
+                  </div>
+                  <button
+                    onClick={() => submitBonus(bonus, user.id)}
+                    className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95"
+                  >
+                    I Did It!
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -4511,8 +4953,8 @@ const UserGuideModal = ({ onClose }) => (
     <div className="space-y-6 text-sm text-gray-700 leading-relaxed pb-4">
       <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-900">
         <strong>ChorePiggy</strong> is a smart family allowance tracker that
-        teaches financial literacy. Unlike simple chore charts, it calculates the
-        value of chores dynamically based on a weekly allowance cap.
+        teaches financial literacy. Unlike simple chore charts, it calculates
+        the value of chores dynamically based on a weekly allowance cap.
       </div>
 
       <section>
@@ -4525,8 +4967,8 @@ const UserGuideModal = ({ onClose }) => (
             account using an email and password.
           </li>
           <li>
-            <strong>Setup Profiles:</strong> Create a profile for yourself (Admin)
-            and each of your children. Set a PIN for everyone.
+            <strong>Setup Profiles:</strong> Create a profile for yourself
+            (Admin) and each of your children. Set a PIN for everyone.
           </li>
         </ul>
       </section>
@@ -4544,9 +4986,9 @@ const UserGuideModal = ({ onClose }) => (
           </li>
           <li>
             <strong>For Partners/Guardians:</strong> In the Parent Dashboard, go
-            to <strong>Settings</strong> and copy the <strong>Invite Link</strong>
-            . Send this to them so they can create their own login joined to
-            this family.
+            to <strong>Settings</strong> and copy the{" "}
+            <strong>Invite Link</strong>. Send this to them so they can create
+            their own login joined to this family.
           </li>
           <li>
             <strong>App Install:</strong> Tap "Share" (iOS) or Menu (Android)
@@ -4628,8 +5070,6 @@ const UserGuideModal = ({ onClose }) => (
       </div>
     </div>
   </Modal>
-
-  
 );
 
 // --- SIMPLE FIREWORKS COMPONENT ---
@@ -4639,7 +5079,9 @@ const Confetti = () => {
     id: i,
     x: Math.random() * 100, // random % left
     y: Math.random() * 100, // random % top
-    color: ["#FFD700", "#FF69B4", "#00BFFF", "#32CD32", "#FFA500"][Math.floor(Math.random() * 5)],
+    color: ["#FFD700", "#FF69B4", "#00BFFF", "#32CD32", "#FFA500"][
+      Math.floor(Math.random() * 5)
+    ],
     delay: Math.random() * 2, // random animation delay
   }));
 
@@ -4653,14 +5095,14 @@ const Confetti = () => {
             left: `${p.x}%`,
             top: `${p.y}%`,
             backgroundColor: p.color,
-            animationDuration: '1s',
+            animationDuration: "1s",
             animationDelay: `${p.delay}s`,
-            animationIterationCount: 'infinite'
+            animationIterationCount: "infinite",
           }}
         />
       ))}
       <div className="absolute inset-0 flex items-center justify-center animate-bounce">
-         <span className="text-6xl filter drop-shadow-lg">🎆</span>
+        <span className="text-6xl filter drop-shadow-lg">🎆</span>
       </div>
     </div>
   );
