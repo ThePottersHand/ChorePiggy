@@ -1779,33 +1779,49 @@ const handlePasswordRecoverySubmit = async () => {
       );
       await signInWithCredential(auth, credential);
 
-      // 2. Handle Success based on context
+      // 2. Handle Logic based on Context
       if (pinTarget?.isGateUnlock) {
         // --- CASE A: Settings Menu Gate ---
-        // Just open the settings modal
+        // Access granted because they know the device password
         const deviceOwnerProfile =
           users.find((u) => u.id === authUser.uid) ||
           users.find((u) => u.role === "parent");
         setSettingsUser(deviceOwnerProfile);
         setShowSettingsModal(true);
+        setShowPasswordRecovery(false); // Close the password modal
       } else {
-        // --- CASE B: User Login (Profile Unlock) ---
-        // Don't reset PIN to 1234. Just log them in!
-        setCurrentUser(pinTarget);
-        setView(pinTarget.role === "parent" ? "parent" : "kid");
+        // --- CASE B: Profile Unlock ---
         
-        if (pinTarget.role === "kid") {
-          localStorage.setItem("chorePiggy_activeUser", pinTarget.id);
-        }
-        
-        // Clear the locks
-        setShowPinPad(false);
-        setPinTarget(null);
-      }
+        // SECURITY CHECK: 
+        // Allow if target is SELF or a KID.
+        // Deny if target is ANOTHER PARENT.
+        const isSelf = pinTarget.id === authUser.uid;
+        const isKid = pinTarget.role === "kid";
 
-      // 3. Cleanup
+        if (isSelf || isKid) {
+          // Grant Access
+          setCurrentUser(pinTarget);
+          setView(pinTarget.role === "parent" ? "parent" : "kid");
+
+          if (pinTarget.role === "kid") {
+            localStorage.setItem("chorePiggy_activeUser", pinTarget.id);
+          }
+
+          // Clear locks
+          setShowPinPad(false);
+          setPinTarget(null);
+          setShowPasswordRecovery(false); // Close the password modal
+        } else {
+          // Deny Access
+          alert("Security Alert: You cannot unlock another parent's profile.");
+          setRecoveryPassword(""); 
+          // We do NOT close the modal here, so they can try again or cancel
+        }
+      }
+      
+      // Clear password field for security
       setRecoveryPassword("");
-      setShowPasswordRecovery(false);
+      
     } catch (e) {
       console.error(e);
       alert("Incorrect password for " + authUser.email);
