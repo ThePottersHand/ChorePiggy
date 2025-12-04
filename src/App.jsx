@@ -1772,31 +1772,38 @@ const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
 const handlePasswordRecoverySubmit = async () => {
     if (!recoveryPassword) return;
     try {
-      // We re-authenticate the CURRENT session user
+      // 1. Verify the Master Password
       const credential = EmailAuthProvider.credential(
-        authUser.email, 
+        authUser.email,
         recoveryPassword
       );
       await signInWithCredential(auth, credential);
 
-      // --- NEW LOGIC ---
+      // 2. Handle Success based on context
       if (pinTarget?.isGateUnlock) {
-        // CASE 1: Generic Device Settings Gate
-        // We verified the password of the device owner, so just let them in!
-        // We set the settings user to the current auth user (the device owner)
-        const deviceOwnerProfile = users.find((u) => u.id === authUser.uid) || users.find(u => u.role === 'parent');
-        
+        // --- CASE A: Settings Menu Gate ---
+        // Just open the settings modal
+        const deviceOwnerProfile =
+          users.find((u) => u.id === authUser.uid) ||
+          users.find((u) => u.role === "parent");
         setSettingsUser(deviceOwnerProfile);
-        setShowSettingsModal(true); 
-        // Do NOT reset any PINs here, just open the door
+        setShowSettingsModal(true);
       } else {
-        // CASE 2: Specific User Login (e.g. "I am Dad, I forgot my PIN")
-        // Since we targeted a specific user ID, we can safely reset their PIN
-        await updateDoc(getFamilyDoc("users", pinTarget.id), { pin: "1234" });
-        alert("Success! Your PIN has been reset to: 1234");
+        // --- CASE B: User Login (Profile Unlock) ---
+        // Don't reset PIN to 1234. Just log them in!
+        setCurrentUser(pinTarget);
+        setView(pinTarget.role === "parent" ? "parent" : "kid");
+        
+        if (pinTarget.role === "kid") {
+          localStorage.setItem("chorePiggy_activeUser", pinTarget.id);
+        }
+        
+        // Clear the locks
+        setShowPinPad(false);
+        setPinTarget(null);
       }
-      // -----------------
 
+      // 3. Cleanup
       setRecoveryPassword("");
       setShowPasswordRecovery(false);
     } catch (e) {
@@ -2304,17 +2311,19 @@ const onPinPadSuccess = (pin) => {
         <Modal
           isOpen={true}
           onClose={() => setShowPasswordRecovery(false)}
-          title={pinTarget?.isGateUnlock ? "Unlock Device Settings" : "Reset PIN"}
+          // Update Title
+          title={pinTarget?.isGateUnlock ? "Unlock Settings" : "Unlock Profile"}
         >
           <div className="space-y-4">
             <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 border border-blue-200">
               <p className="font-bold mb-1">Security Check</p>
               Please enter the password for:
               <br />
-              {/* DISPLAY THE EMAIL SO YOU KNOW WHOSE PASSWORD IS NEEDED */}
-              <strong className="font-mono text-xs block mt-1">{authUser.email}</strong>
+              <strong className="font-mono text-xs block mt-1">
+                {authUser.email}
+              </strong>
             </div>
-            
+
             <input
               type="password"
               className="w-full border p-2 rounded"
@@ -2323,9 +2332,10 @@ const onPinPadSuccess = (pin) => {
               placeholder="Enter Password"
               autoFocus
             />
-            
+
             <Button onClick={handlePasswordRecoverySubmit} className="w-full">
-              {pinTarget?.isGateUnlock ? "Verify & Unlock Menu" : "Verify & Reset PIN to 1234"}
+              {/* Update Button Text */}
+              Verify & Unlock
             </Button>
           </div>
         </Modal>
