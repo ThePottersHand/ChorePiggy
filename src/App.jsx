@@ -656,14 +656,12 @@ const PinPad = ({
       setInput(newInput);
 
       if (newInput.length === 4) {
-if (step === "verify") {
-  // Convert both to String to ensure "1234" matches 1234
-  if (String(newInput) === String(targetPin)) { 
-    onSuccess(newInput);
-  } else {
-    triggerError();
-  }
-}
+        if (step === "verify") {
+          if (String(newInput) === String(targetPin)) {
+            onSuccess(newInput);
+          } else {
+            triggerError();
+          }
         } else if (step === "create") {
           setConfirmInput(newInput);
           setInput("");
