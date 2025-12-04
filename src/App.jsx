@@ -1,3 +1,4 @@
+import QRCode from "react-qr-code";
 import React, { useState, useEffect } from "react";
 import {
   Users,
@@ -762,7 +763,7 @@ const SetupWizard = ({
   mode = "create",
   inviteFamilyName = "",
 }) => {
-  const [step, setStep] = useState("parent"); // parent | kids | invite
+  const [step, setStep] = useState("parent"); // parent | kids | invite | nextSteps
   const [parentName, setParentName] = useState("");
   const [parentPin, setParentPin] = useState("");
   const [kidsList, setKidsList] = useState([]);
@@ -770,9 +771,11 @@ const SetupWizard = ({
   const [kidPin, setKidPin] = useState("");
   const [familyName, setFamilyName] = useState("");
 
-  // Calculate the ID immediately for display
   const myNewFamilyId = getAuth().currentUser?.uid;
   const inviteLink = `${window.location.origin}${window.location.pathname}?join=${myNewFamilyId}`;
+  
+  // NEW: The "Login Only" link for the QR Code
+  const kidLoginLink = `${window.location.origin}${window.location.pathname}?kid_login=true`;
 
   const handleAddKid = () => {
     if (kidName && kidPin.length === 4) {
@@ -783,12 +786,19 @@ const SetupWizard = ({
   };
 
   const handleNext = () => {
-    // If creating, go to Invite step. If joining, finish.
     if (mode === "create") setStep("invite");
-    else handleSubmit();
+    else handleSubmit(); // If joining, we just finish
   };
 
-  const handleSubmit = () => {
+  const handleInviteNext = () => {
+    // Save the data to DB first, THEN show Next Steps
+    // We do this by triggering the "handleSubmit" logic but NOT closing the modal yet.
+    // Actually, for simplicity in your current architecture (where onComplete closes modal), 
+    // let's just move to nextSteps and pass the data at the very end.
+    setStep("nextSteps");
+  };
+
+  const handleFinalFinish = () => {
     let finalKids = [...kidsList];
     if (kidName && kidPin.length === 4) {
       finalKids.push({ name: kidName, pin: kidPin, allowance: 10 });
@@ -814,6 +824,7 @@ const SetupWizard = ({
       <div className="space-y-4">
         {step === "parent" && (
           <div className="space-y-4 animate-in fade-in">
+            {/* ... (Existing Parent Form Code remains same) ... */}
             <p className="text-gray-600 text-sm">
               {mode === "create"
                 ? "First, create the main parent profile."
@@ -861,7 +872,7 @@ const SetupWizard = ({
               onClick={() => {
                 if (parentName && parentPin.length === 4) {
                   if (mode === "create") setStep("kids");
-                  else handleSubmit();
+                  else handleFinalFinish();
                 } else {
                   alert("Display Name and 4-digit PIN required.");
                 }
@@ -874,6 +885,7 @@ const SetupWizard = ({
 
         {step === "kids" && (
           <div className="space-y-4 animate-in fade-in">
+             {/* ... (Existing Kids Form Code remains same) ... */}
             <p className="text-gray-600 text-sm">
               Now, add profiles for your kids.
             </p>
@@ -925,6 +937,7 @@ const SetupWizard = ({
 
         {step === "invite" && (
           <div className="space-y-6 animate-in fade-in text-center">
+             {/* ... (Existing Invite Code remains same) ... */}
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
               <h4 className="font-bold text-yellow-800 mb-2">
                 Invite your Partner
@@ -945,8 +958,45 @@ const SetupWizard = ({
                 Family ID: {myNewFamilyId}
               </p>
             </div>
-            <Button className="w-full" onClick={handleSubmit}>
-              Finish Setup
+            {/* CHANGED ACTION: Go to next steps instead of finish */}
+            <Button className="w-full" onClick={handleInviteNext}>
+              Next: Connect Kids' Devices
+            </Button>
+          </div>
+        )}
+
+        {/* NEW STEP: QR CODE & INSTRUCTIONS */}
+        {step === "nextSteps" && (
+          <div className="space-y-6 animate-in fade-in text-center">
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-2">Scan with Kids' Devices</h3>
+              
+              <div className="bg-white p-4 rounded-xl shadow-sm inline-block mb-3 border border-blue-100">
+                <QRCode value={kidLoginLink} size={160} />
+              </div>
+              
+              <p className="text-xs text-blue-800 font-medium mb-1">
+                Scan to open the Login Page on their device.
+              </p>
+              <p className="text-[10px] text-blue-600">
+                (You will need to log them in with the family email/password once)
+              </p>
+            </div>
+
+            <div className="text-left bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <div className="flex items-start gap-2">
+                <LockIcon size={14} className="text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-gray-700">iPad Locked Down?</p>
+                  <p className="text-[10px] text-gray-500 leading-tight mt-1">
+                    If your child has Screen Time limits, go to <strong>Settings &gt; Screen Time &gt; Content Restrictions</strong> and add this website to the allowed list so they can access it!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleFinalFinish}>
+              Done! Go to Dashboard
             </Button>
           </div>
         )}
@@ -954,6 +1004,7 @@ const SetupWizard = ({
     </Modal>
   );
 };
+
 const DeviceSetupWizard = ({
   kids,
   users = [],
@@ -961,6 +1012,7 @@ const DeviceSetupWizard = ({
   installEvent,
   isIOS,
   isStandalone,
+  isMobile,
 }) => {
   // If not installed, start at 'install-step', otherwise go straight to 'select-mode'
   const [step, setStep] = useState(
@@ -1143,7 +1195,13 @@ const DeviceSetupWizard = ({
 };
 
 const AuthScreen = ({ inviteInfo }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  // 1. Detect "Kid Mode" from URL
+  const params = new URLSearchParams(window.location.search);
+  const isKidLoginMode = params.get("kid_login") === "true";
+
+  // 2. Force Login state if in Kid Mode
+  const [isLogin, setIsLogin] = useState(true); 
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -1185,12 +1243,19 @@ const AuthScreen = ({ inviteInfo }) => {
           <h1 className="text-4xl font-extrabold text-blue-600 flex items-center justify-center gap-3 mb-2">
             <PiggyBank size={40} /> ChorePiggy
           </h1>
+          
+          {/* DYNAMIC HEADER MESSAGES */}
           {inviteInfo ? (
             <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-yellow-800 text-sm font-semibold">
               You've been invited to join the <br />
               <span className="text-lg font-bold">{inviteInfo.name}</span>{" "}
               family!
             </div>
+          ) : isKidLoginMode ? (
+             <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-blue-800 text-sm font-semibold">
+               <p>👋 Kid Device Setup</p>
+               <p className="font-normal text-xs mt-1">Parent: Log in with the <strong>Family Account</strong>.</p>
+             </div>
           ) : (
             <p className="text-gray-500">The smart family allowance tracker.</p>
           )}
@@ -1248,22 +1313,13 @@ const AuthScreen = ({ inviteInfo }) => {
 
           {!isLogin && (
             <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border border-gray-100 my-2">
-              <p className="font-bold mb-1">
-                By creating an account, you agree:
-              </p>
+              <p className="font-bold mb-1">By creating an account, you agree:</p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>
-                  <strong>Not a Bank:</strong> This is a tracking tool only. No
-                  real funds are held or transferred.
+                  <strong>Not a Bank:</strong> This is a tracking tool only.
                 </li>
                 <li>
-                  <strong>Parental Consent:</strong> You are the guardian
-                  authorized to create profiles for the minors added to this
-                  family.
-                </li>
-                <li>
-                  <strong>As-Is Service:</strong> We are not responsible for
-                  data loss or family disputes over allowance!
+                  <strong>Parental Consent:</strong> You are the guardian.
                 </li>
               </ul>
             </div>
@@ -1280,20 +1336,31 @@ const AuthScreen = ({ inviteInfo }) => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError("");
-              setMessage("");
-            }}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            {isLogin
-              ? "Need a family account? Sign Up"
-              : "Already have an account? Log In"}
-          </button>
-        </div>
+        {/* HIDE TOGGLE IN KID MODE */}
+        {!isKidLoginMode && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setMessage("");
+              }}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              {isLogin
+                ? "Need a family account? Sign Up"
+                : "Already have an account? Log In"}
+            </button>
+          </div>
+        )}
+        
+        {isKidLoginMode && (
+           <div className="mt-6 text-center">
+             <a href="/" className="text-xs text-gray-400 hover:text-gray-600">
+               Not a kid device? Go to standard login.
+             </a>
+           </div>
+        )}
       </div>
     </div>
   );
@@ -1337,7 +1404,7 @@ export default function App() {
   const [installPromptEvent, setInstallPromptEvent] = useState(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
-
+const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     // Check if already installed
     const isStandaloneMode =
@@ -1348,6 +1415,9 @@ export default function App() {
     // Check if iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+
+    const mobileCheck = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    setIsMobile(mobileCheck);
 
     // Listen for Android/Desktop install event
     const handleBeforeInstall = (e) => {
@@ -2216,6 +2286,7 @@ export default function App() {
           installEvent={installPromptEvent} // Pass the event
           isIOS={isIOS} // Pass iOS status
           isStandalone={isStandalone} // Pass standalone status
+          isMobile={isMobile}
         />
       )}
       {showPasswordRecovery && (
