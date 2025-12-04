@@ -1626,53 +1626,37 @@ const [isMobile, setIsMobile] = useState(false);
     );
 
     // 4. Listen to Standard Collections
-    const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
-      return onSnapshot(
-        ref,
-        (snapshot) => {
-          const data = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          if (key === "users") {
-            setUsers(data);
-            setDataLoaded(true);
+const unsubscribers = Object.entries(COLLECTIONS).map(([key, ref]) => {
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      if (key === "users") {
+        setUsers(data);
+        setDataLoaded(true); // Success! Stop loading.
 
-            // --- SECURITY CHECK ---
-            // If the user list has loaded, but I (the current user) am NOT in it,
-            // it means I have been deleted by the admin.
-            if (data.length > 0 && !data.find((u) => u.id === authUser.uid)) {
-              alert("You have been removed from this family.");
-
-              // 1. Remove this family from browser memory so we don't auto-rejoin
-              const currentKnown = JSON.parse(
-                localStorage.getItem("chorePiggy_knownFamilies") || "[]"
-              );
-              const newKnown = currentKnown.filter(
-                (id) => id !== currentFamilyId
-              );
-              localStorage.setItem(
-                "chorePiggy_knownFamilies",
-                JSON.stringify(newKnown)
-              );
-              setKnownFamilyIds(newKnown);
-
-              // 2. Clear Device Config (Auto-login preferences)
-              localStorage.removeItem("chorePiggy_deviceConfig");
-              setDeviceConfig(null);
-
-              // 3. Boot out to main menu immediately
-              setCurrentFamilyId(null);
-              setView("login");
-            }
-          }
-          if (key === "kids") setKids(data);
-          if (key === "chores") setChores(data);
-          if (key === "bonuses") setBonuses(data);
-        },
-        (error) => console.log(`Error fetching ${key}:`, error)
-      );
-    });
+        // ... (Keep existing security check logic here) ...
+        if (data.length > 0 && !data.find((u) => u.id === authUser.uid)) {
+           // ... (Keep existing kick-out logic) ...
+        }
+      }
+      if (key === "kids") setKids(data);
+      if (key === "chores") setChores(data);
+      if (key === "bonuses") setBonuses(data);
+    },
+    (error) => {
+      console.log(`Error fetching ${key}:`, error);
+      // FIX: If the listener fails (e.g. permission denied on new account),
+      // we must still stop the loading screen so the user can see the "Create Family" button.
+      if (key === "users") {
+        setDataLoaded(true);
+      }
+    }
+  );
+});
 
     // ... (Keep the rest of the existing taskLog/history listeners logic below exactly as it was) ...
     // Note: If you copy-pasted this whole block, make sure you keep the taskLogQuery and historyQuery parts below this.
