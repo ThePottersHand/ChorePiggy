@@ -990,64 +990,49 @@ const DeviceSetupWizard = ({
   return (
     <Modal isOpen={true} onClose={null} title="Setup This Device">
       <div className="space-y-4">
-        {/* STEP 1: INSTALLATION (Skipped if already installed) */}
-        {step === "install-step" && (
-          <div className="text-center space-y-6 animate-in fade-in">
-            <div className="bg-indigo-50 p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto text-indigo-600 mb-4">
-              <Download size={40} />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-gray-800">Install App?</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                For the best experience, add ChorePiggy to your home screen. It
-                will look and feel like a native app!
-              </p>
-            </div>
+{/* STEP 1: INSTALLATION */}
+{step === "install-step" && (
+  <div className="text-center space-y-6 animate-in fade-in">
+    <div className="bg-indigo-50 p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto text-indigo-600 mb-4">
+      <Download size={40} />
+    </div>
+    <div>
+      {/* SMART TITLE: Changes based on device */}
+      <h3 className="font-bold text-lg text-gray-800">
+        {isMobile ? "Install App?" : "Install to Desktop?"}
+      </h3>
+      <p className="text-sm text-gray-500 mt-2">
+        {isMobile 
+          ? "Add ChorePiggy to your home screen for the best experience!" 
+          : "Install the ChorePiggy app to your computer for quick access!"}
+      </p>
+    </div>
 
-            {isIOS ? (
-              <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 text-left space-y-2 border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <span>1. Tap</span>
-                  <span className="inline-flex items-center gap-1 font-bold text-blue-600">
-                    <Share size={14} /> Share
-                  </span>
-                  <span>in your browser bar.</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>2. Scroll down & tap</span>
-                  <span className="inline-flex items-center gap-1 font-bold text-gray-800">
-                    <Plus
-                      size={14}
-                      className="border border-gray-400 rounded-[4px] p-[1px]"
-                    />{" "}
-                    Add to Home Screen
-                  </span>
-                </div>
-                <div className="mt-2 text-center text-xs text-gray-400">
-                  (After adding, close this tab and open the app from your home
-                  screen!)
-                </div>
-              </div>
-            ) : (
-              installEvent && (
-                <Button
-                  onClick={handleInstallClick}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
-                >
-                  Install Now
-                </Button>
-              )
-            )}
+    {isIOS ? (
+      /* ... Keep iOS Instructions ... */
+      <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 text-left space-y-2 border border-gray-200">
+         {/* ... (Existing iOS code) ... */}
+      </div>
+    ) : (
+       installEvent && (
+        <Button 
+          onClick={handleInstallClick} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
+        >
+          {isMobile ? "Install Now" : "Install App"}
+        </Button>
+       )
+    )}
 
-            <Button
-              variant="ghost"
-              onClick={() => setStep("select-mode")}
-              className="w-full text-gray-400 font-normal"
-            >
-              Skip / Already Installed
-            </Button>
-          </div>
-        )}
+    <Button 
+      variant="ghost" 
+      onClick={() => setStep("select-mode")} 
+      className="w-full text-gray-400 font-normal"
+    >
+      Skip / Already Installed
+    </Button>
+  </div>
+)}
 
         {/* STEP 2: SELECT MODE */}
         {step === "select-mode" && (
@@ -4212,7 +4197,8 @@ function KidView({
   const weekDays = getWeekDays(weekOffset);
   const stats = calculateWeeklyStats(user.id, weekOffset);
 
-  const isGoalReached = user.savingsGoal > 0 && user.balance >= user.savingsGoal;
+  const isGoalReached =
+    user.savingsGoal > 0 && user.balance >= user.savingsGoal;
   const hasAvailableBonuses = data.bonuses.length > 0;
 
   const percentageEarned =
@@ -4527,35 +4513,35 @@ function KidView({
               </span>
             )}
           </button>
-<button
-      onClick={() => setActiveTab("bonus")}
-      className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all relative ${
-        activeTab === "bonus"
-          ? "bg-indigo-100 text-indigo-700"
-          : "text-gray-400 hover:bg-gray-50"
-      } ${
-        hasAvailableBonuses && activeTab !== "bonus"
-          ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400"
-          : ""
-      }`}
-    >
-      <Award
-        size={20}
-        className={
-          hasAvailableBonuses && activeTab !== "bonus"
-            ? "fill-yellow-500 text-yellow-600"
-            : ""
-        }
-      />
-      Bonus
-      {/* Notification Dot */}
-      {hasAvailableBonuses && activeTab !== "bonus" && (
-        <span className="absolute top-1 right-2 flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-        </span>
-      )}
-    </button>
+          <button
+            onClick={() => setActiveTab("bonus")}
+            className={`flex-1 py-3 rounded-lg flex flex-col items-center gap-1 text-xs font-bold transition-all relative ${
+              activeTab === "bonus"
+                ? "bg-indigo-100 text-indigo-700"
+                : "text-gray-400 hover:bg-gray-50"
+            } ${
+              hasAvailableBonuses && activeTab !== "bonus"
+                ? "animate-pulse bg-yellow-100 text-yellow-600 ring-2 ring-yellow-400"
+                : ""
+            }`}
+          >
+            <Award
+              size={20}
+              className={
+                hasAvailableBonuses && activeTab !== "bonus"
+                  ? "fill-yellow-500 text-yellow-600"
+                  : ""
+              }
+            />
+            Bonus
+            {/* Notification Dot */}
+            {hasAvailableBonuses && activeTab !== "bonus" && (
+              <span className="absolute top-1 right-2 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+              </span>
+            )}
+          </button>
         </Card>
 
         {/* TAB CONTENT: TODO */}
@@ -4872,14 +4858,12 @@ function KidView({
                       <p className="text-gray-500">
                         You haven't set a savings goal yet!
                       </p>
-<Button 
-      onClick={() => setEditingGoal(true)} 
-      className="mx-auto"
-    >
-      Set a Goal
-    </Button>
-    
-
+                      <Button
+                        onClick={() => setEditingGoal(true)}
+                        className="mx-auto"
+                      >
+                        Set a Goal
+                      </Button>
                     </div>
                   )}
                 </>
