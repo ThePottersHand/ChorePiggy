@@ -3642,9 +3642,17 @@ function ParentView({
               >
                 <ChevronLeft size={16} />
               </button>
-              <span className="font-bold text-sm text-gray-700">
-                {managerWeekOffset === 0 ? "This Week" : "Last Week"}
-              </span>
+<span className="font-bold text-sm text-gray-700">
+  {managerWeekOffset === 0 
+    ? "This Week" 
+    : managerWeekOffset === 1 
+      ? "Next Week" 
+      : managerWeekOffset === -1 
+        ? "Last Week" 
+        : managerWeekOffset > 0 
+          ? `In ${managerWeekOffset} Weeks` 
+          : `${Math.abs(managerWeekOffset)} Weeks Ago`}
+</span>
               <button
                 onClick={() => setManagerWeekOffset((prev) => prev + 1)}
                 className="p-2 hover:bg-gray-200 rounded"
